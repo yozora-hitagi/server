@@ -372,7 +372,9 @@ void WorldSession::HandlePetitionSignOpcode(WorldPacket& recv_data)
 
     // client doesn't allow to sign petition two times by one character, but not check sign by another character from same account
     // not allow sign another player from already sign player account
-    result = CharacterDatabase.PQuery("SELECT playerguid FROM petition_sign WHERE player_account = '%u' AND petitionguid = '%u'", GetAccountId(), petitionLowGuid);
+	//result = CharacterDatabase.PQuery("SELECT playerguid FROM petition_sign WHERE player_account = '%u' AND petitionguid = '%u'", GetAccountId(), petitionLowGuid);
+	//放宽下限制，单机的时候整不了那么多account，而且还要区别机器人是不是同一账户
+	result = CharacterDatabase.PQuery("SELECT playerguid FROM petition_sign WHERE playerguid = '%u' AND petitionguid = '%u'", _player->GetObjectGuid(), petitionLowGuid);
 
     if (result)
     {

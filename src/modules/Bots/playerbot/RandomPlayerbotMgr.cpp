@@ -683,7 +683,7 @@ void RandomPlayerbotMgr::OnPlayerLogin(Player* player)
             {
                 ai->SetMaster(player);
                 ai->ResetStrategies();
-                ai->TellMaster("Hello");
+				ai->TellMaster("Hello, welcome back, " + string(player->GetName()) + "!");
                 break;
             }
         }

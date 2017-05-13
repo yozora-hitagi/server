@@ -70,7 +70,10 @@ namespace ai
             creators["who"] = &ChatTriggerContext::who;
             creators["save mana"] = &ChatTriggerContext::save_mana;
             creators["max dps"] = &ChatTriggerContext::max_dps;
-            creators["attackers"] = &ChatTriggerContext::attackers;
+			creators["attackers"] = &ChatTriggerContext::attackers;
+
+			creators["yh"] = &ChatTriggerContext::yh_order;
+
         }
 
     private:
@@ -133,6 +136,8 @@ namespace ai
         static Trigger* loot_all(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "add all loot"); }
         static Trigger* release(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "release"); }
         static Trigger* reset_ai(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "reset ai"); }
-        static Trigger* spell(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "spell"); }
+		static Trigger* spell(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "spell"); }
+
+		static Trigger* yh_order(PlayerbotAI* ai) { return new ChatCommandTrigger(ai, "yh_order"); }
     };
 };

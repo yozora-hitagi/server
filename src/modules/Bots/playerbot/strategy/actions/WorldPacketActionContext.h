@@ -24,6 +24,9 @@
 #include "SecurityCheckAction.h"
 #include "GuildAcceptAction.h"
 
+#include "PetitionSignAction.h"
+#include "LevelupAction.h"
+
 namespace ai
 {
     class WorldPacketActionContext : public NamedObjectContext<Action>
@@ -59,7 +62,10 @@ namespace ai
             creators["ready check finished"] = &WorldPacketActionContext::ready_check_finished;
             creators["uninvite"] = &WorldPacketActionContext::uninvite;
             creators["security check"] = &WorldPacketActionContext::security_check;
-            creators["guild accept"] = &WorldPacketActionContext::guild_accept;
+			creators["guild accept"] = &WorldPacketActionContext::guild_accept;
+
+			creators["petition sign"] = &WorldPacketActionContext::petition_sign;
+			creators["level up"] = &WorldPacketActionContext::level_up;
         }
 
     private:
@@ -92,6 +98,10 @@ namespace ai
         static Action* accept_all_quests(PlayerbotAI* ai) { return new AcceptAllQuestsAction(ai); }
         static Action* accept_quest_share(PlayerbotAI* ai) { return new AcceptQuestShareAction(ai); }
         static Action* loot_roll(PlayerbotAI* ai) { return (QueryItemUsageAction*)new LootRollAction(ai); }
+
+		static Action* petition_sign(PlayerbotAI* ai) { return new PetitionSignAction(ai); }
+		static Action* level_up(PlayerbotAI* ai) { return new LevelupAction(ai); }
+
     };
 
 

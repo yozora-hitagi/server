@@ -42,7 +42,10 @@ namespace ai
             creators["lfg proposal"] = &WorldPacketTriggerContext::lfg_proposal;
             creators["lfg role check"] = &WorldPacketTriggerContext::lfg_role_check;
             creators["lfg leave"] = &WorldPacketTriggerContext::lfg_leave;
-            creators["guild invite"] = &WorldPacketTriggerContext::guild_invite;
+			creators["guild invite"] = &WorldPacketTriggerContext::guild_invite;
+
+			creators["petition sign"] = &WorldPacketTriggerContext::petition_sign;
+			creators["level up"] = &WorldPacketTriggerContext::level_up;
         }
 
     private:
@@ -78,6 +81,9 @@ namespace ai
         static Trigger* accept_quest(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "accept quest"); }
         static Trigger* quest_share(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "quest share"); }
         static Trigger* loot_roll(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "loot roll"); }
-        static Trigger* taxi(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "activate taxi"); }
+		static Trigger* taxi(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "activate taxi"); }
+
+		static Trigger* petition_sign(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "petition sign"); }
+		static Trigger* level_up(PlayerbotAI* ai) { return new WorldPacketTrigger(ai, "level up"); }
     };
 };

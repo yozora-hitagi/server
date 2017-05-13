@@ -119,14 +119,32 @@ bool QuestObjectiveCompletedAction::Execute(Event event)
     {
         entry &= 0x7FFFFFFF;
         GameObjectInfo const* info = sObjectMgr.GetGameObjectInfo(entry);
-        if (info)
-            ai->TellMaster(chat->formatQuestObjective(info->name, available, required));
+		if (info) {
+			//这里修改的时候没有验证，改下面生物的时候一起改的
+			const GameObjectLocale*  loc= sObjectMgr.GetGameObjectLocale(entry);
+			int idx = sObjectMgr.GetIndexForLocale(bot->GetSession()->GetSessionDbcLocale());
+			string name = loc->Name[idx];
+			if (name.empty())
+			{
+				name = info->name;
+			}
+			ai->TellMaster(chat->formatQuestObjective(name, available, required));
+		}
     }
     else
     {
         CreatureInfo const* info = sObjectMgr.GetCreatureTemplate(entry);
-        if (info)
-            ai->TellMaster(chat->formatQuestObjective(info->Name, available, required));
+		if (info) {
+			//做任务的时候，检查完成进度， 这里是 杀怪的进度 的
+			const CreatureLocale* loc= sObjectMgr.GetCreatureLocale(entry);
+			int idx = sObjectMgr.GetIndexForLocale(bot->GetSession()->GetSessionDbcLocale());
+			string name= loc->Name[idx];
+			if (name.empty())
+			{
+				name = info->Name;
+			}
+			ai->TellMaster(chat->formatQuestObjective(name, available, required));
+		}
     }
 
     return true;

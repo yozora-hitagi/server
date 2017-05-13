@@ -74,9 +74,13 @@ bool PlayerbotAIConfig::Initialize()
 
     allowGuildBots = config.GetBoolDefault("AiPlayerbot.AllowGuildBots", true);
 
-    randomBotMapsAsString = config.GetStringDefault("AiPlayerbot.RandomBotMaps", "0,1,530,571");
+	//530 是外域，571 是诺森德 ， 60级是没得滴
+	//randomBotMapsAsString = config.GetStringDefault("AiPlayerbot.RandomBotMaps", "0,1,530,571");
+	randomBotMapsAsString = config.GetStringDefault("AiPlayerbot.RandomBotMaps", "0,1");
     LoadList<vector<uint32> >(randomBotMapsAsString, randomBotMaps);
     LoadList<list<uint32> >(config.GetStringDefault("AiPlayerbot.RandomBotQuestItems", "6948,5175,5176,5177,5178"), randomBotQuestItems);
+
+	//54197 - cold weather flying 貌似是寒冷天气飞行，没验证
     LoadList<list<uint32> >(config.GetStringDefault("AiPlayerbot.RandomBotSpellIds", "54197"), randomBotSpellIds);
 
     randomBotAutologin = config.GetBoolDefault("AiPlayerbot.RandomBotAutologin", true);
@@ -252,11 +256,13 @@ void PlayerbotAIConfig::CreateRandomBots()
             continue;
         }
 
-        string password = "";
+        /*string password = "";
         for (int i = 0; i < 10; i++)
         {
             password += (char)urand('!', 'z');
-        }
+        }*/
+		//密码改成可知的，这样就可以登陆随机机器人账户了
+		string password = accountName;
         sAccountMgr.CreateAccount(accountName, password);
 
         sLog.outDetail("Account %s created for random bots", accountName.c_str());
@@ -281,7 +287,11 @@ void PlayerbotAIConfig::CreateRandomBots()
         randomBotAccounts.push_back(accountId);
 
         int count = sAccountMgr.GetCharactersCount(accountId);
-        if (count >= 10)
+
+		//因为 角色最多10个 所以，为了也能登陆机器人账号
+		//有9个职业， 所以，这里检查 最导致第二次创建 生成18个，导致登陆获取角色列表失败。
+        //if (count >= 10)
+		if (count > 1)
         {
             totalRandomBotChars += count;
             continue;

@@ -38,7 +38,25 @@ namespace ai
                 bot->GetPlayerbotAI()->SetMaster(inviter);
 
             ai->ResetStrategies();
-            ai->TellMaster("Hello");
+
+			//"Hello, thanks for inviting me!"
+			string msg;
+			WStrToUtf8(wstring(L"哈哈~ 让我们一起快乐的冒险吧！"), msg);
+
+            ai->TellMaster(msg);
+			
+
+			//添加 邀请了就传送到跟前的代码
+			//orientation 方向
+			float x, y, z;
+			inviter->GetPosition(x, y, z);
+			bot->GetMotionMaster()->Clear();
+			bool ok = bot->TeleportTo(inviter->GetMapId(), x, y, z, bot->GetOrientation());
+
+			//从FollowChatShortcutAction copy 来的跟随
+			ai->ChangeStrategy("+follow master,-passive", BOT_STATE_NON_COMBAT);
+			ai->ChangeStrategy("-follow master,-passive", BOT_STATE_COMBAT);
+
             return true;
         }
     };

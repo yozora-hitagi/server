@@ -8,6 +8,9 @@ using namespace ai;
 
 bool RewardAction::Execute(Event event)
 {
+	//~reward |Hitem:6171: 
+	// trigger
+
     string link = event.getParam();
 
     ItemIds itemIds = chat->parseItems(link);
@@ -46,7 +49,7 @@ bool RewardAction::Reward(uint32 itemId, Object* questGiver)
         uint32 questID = qItem.m_qId;
         Quest const* pQuest = sObjectMgr.GetQuestTemplate(questID);
         QuestStatus status = bot->GetQuestStatus(questID);
-
+	
         // if quest is complete, turn it in
         if (status == QUEST_STATUS_COMPLETE &&
             ! bot->GetQuestRewardStatus(questID) &&
@@ -56,6 +59,9 @@ bool RewardAction::Reward(uint32 itemId, Object* questGiver)
             for (uint8 rewardIdx=0; rewardIdx < pQuest->GetRewChoiceItemsCount(); ++rewardIdx)
             {
                 ItemPrototype const * const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
+				
+				/*sObjectMgr.GetItemLocale(pRewardItem->ItemId)->Name[];
+				bot->GetSession()->getlo*/
                 if (itemId == pRewardItem->ItemId)
                 {
                     bot->RewardQuest(pQuest, rewardIdx, questGiver, false);
