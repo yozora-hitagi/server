@@ -11,6 +11,10 @@ namespace ai
 
         virtual bool Execute(Event event)
         {
+			//master离开后会调用这里，
+			//这时候队伍中至少两个机器人
+			//那么第一个机器人判断在队伍中就回继续下去，对master说bye，然后离队。
+			//第二个机器人就不在队伍，就不会说bye。
             if (!bot->GetGroup())
                 return false;
 
@@ -50,8 +54,10 @@ namespace ai
                 return false;
 
             Player* master = GetMaster();
-            if (master && member == master->GetName())
-                return LeaveGroupAction::Execute(event);
+			if (master && member == master->GetName()) {
+				//上面收到 有人离开的消息，这里判断离开的是master，就调用。
+				return LeaveGroupAction::Execute(event);
+			}
 
             return false;
         }
@@ -59,18 +65,32 @@ namespace ai
 
     class UninviteAction : public LeaveGroupAction {
     public:
-        UninviteAction(PlayerbotAI* ai) : LeaveGroupAction(ai, "party command") {}
+        UninviteAction(PlayerbotAI* ai) : LeaveGroupAction(ai,"party command" ) {}//"uninvite"
 
-        virtual bool Execute(Event event)
-        {
-            WorldPacket& p = event.getPacket();
-            p.rpos(0);
-            ObjectGuid guid;
+		virtual bool Execute(Event event)
+		{
+			WorldPacket& p = event.getPacket();
+			p.rpos(0);
+			ObjectGuid guid;
 
-            p >> guid;
+			p >> guid;
 
-            if (bot->GetObjectGuid() == guid)
-                return LeaveGroupAction::Execute(event);
+			if (bot->GetObjectGuid() == guid) {
+
+				//这里没过来， 但是代码上，在某个地方可能会过来，所以先不管这里了。
+				//
+				//在取消邀请的时候，增加点儿处理
+				string msg;
+				WStrToUtf8(L"期待下一次的冒险！", msg);
+				ai->TellMaster(msg);
+				// 这里当机器人在远处的时候 取消邀请会触发，不晓得为啥，所以这里的取消跟随没啥意义了。
+
+				//取消跟随
+				/*ai->ChangeStrategy("-follow master", BOT_STATE_NON_COMBAT);
+				ai->ChangeStrategy("-follow master", BOT_STATE_COMBAT);*/
+
+				return LeaveGroupAction::Execute(event);
+			}
 
             return false;
         }

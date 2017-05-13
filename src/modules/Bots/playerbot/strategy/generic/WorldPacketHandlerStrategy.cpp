@@ -94,6 +94,7 @@ void WorldPacketHandlerStrategy::InitTriggers(std::list<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode(
         "guild invite",
         NextAction::array(0, new NextAction("guild accept", relevance), NULL)));
+
 }
 
 WorldPacketHandlerStrategy::WorldPacketHandlerStrategy(PlayerbotAI* ai) : PassTroughStrategy(ai)
@@ -104,7 +105,10 @@ WorldPacketHandlerStrategy::WorldPacketHandlerStrategy(PlayerbotAI* ai) : PassTr
     supported.push_back("party command");
     supported.push_back("ready check");
     supported.push_back("uninvite");
-    supported.push_back("lfg role check");
+	supported.push_back("lfg role check");
+
+	supported.push_back("petition sign");
+	supported.push_back("level up");
 }
 
 

@@ -49,6 +49,8 @@
 #include "WhoAction.h"
 #include "SaveManaAction.h"
 
+#include "AcceptYHOrderAction.h"
+
 namespace ai
 {
     class ChatActionContext : public NamedObjectContext<Action>
@@ -111,7 +113,9 @@ namespace ai
             creators["who"] = &ChatActionContext::who;
             creators["save mana"] = &ChatActionContext::save_mana;
             creators["max dps chat shortcut"] = &ChatActionContext::max_dps_chat_shortcut;
-            creators["tell attackers"] = &ChatActionContext::tell_attackers;
+			creators["tell attackers"] = &ChatActionContext::tell_attackers;
+
+			creators["yh_order"] = &ChatActionContext::yh_order;
         }
 
     private:
@@ -172,7 +176,9 @@ namespace ai
         static Action* ll(PlayerbotAI* ai) { return new LootStrategyAction(ai); }
         static Action* add_all_loot(PlayerbotAI* ai) { return new AddAllLootAction(ai); }
         static Action* reset_ai(PlayerbotAI* ai) { return new ResetAiAction(ai); }
-        static Action* gossip_hello(PlayerbotAI* ai) { return new GossipHelloAction(ai); }
+		static Action* gossip_hello(PlayerbotAI* ai) { return new GossipHelloAction(ai); }
+
+		static Action* yh_order(PlayerbotAI* ai) { return new AcceptYHOrderAction(ai); }
     };
 
 

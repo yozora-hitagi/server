@@ -42,8 +42,12 @@ uint32 SpellIdValue::Calculate()
             continue;
 
         char* spellName = pSpellInfo->SpellName[loc];
-        if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
-            continue;
+		if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart)) {
+			//添加 使用英文环境
+			spellName = pSpellInfo->SpellName[LocaleConstant(DEFAULT_LOCALE)];
+			if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
+				continue;
+		}
 
         bool usesNoReagents = (pSpellInfo->Reagent[0] <= 0);
 
@@ -78,8 +82,12 @@ uint32 SpellIdValue::Calculate()
                 continue;
 
             char* spellName = pSpellInfo->SpellName[loc];
-            if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
-                continue;
+			if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart)) {
+				//添加 使用英文环境
+				spellName = pSpellInfo->SpellName[LocaleConstant(DEFAULT_LOCALE)];
+				if (tolower(spellName[0]) != firstSymbol || strlen(spellName) != spellLength || !Utf8FitTo(spellName, wnamepart))
+					continue;
+			}
 
             foundSpellId = spellId;
         }
