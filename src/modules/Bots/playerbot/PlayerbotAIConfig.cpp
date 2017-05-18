@@ -84,15 +84,23 @@ bool PlayerbotAIConfig::Initialize()
     LoadList<list<uint32> >(config.GetStringDefault("AiPlayerbot.RandomBotSpellIds", "54197"), randomBotSpellIds);
 
     randomBotAutologin = config.GetBoolDefault("AiPlayerbot.RandomBotAutologin", true);
-    minRandomBots = config.GetIntDefault("AiPlayerbot.MinRandomBots", 50);
-    maxRandomBots = config.GetIntDefault("AiPlayerbot.MaxRandomBots", 200);
+
+    minRandomBots = config.GetIntDefault("AiPlayerbot.MinRandomBots", 20);
+    maxRandomBots = config.GetIntDefault("AiPlayerbot.MaxRandomBots", 45);
+
     randomBotUpdateInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateInterval", 60);
     randomBotCountChangeMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMinInterval", 24 * 3600);
     randomBotCountChangeMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMaxInterval", 3 * 24 * 3600);
     minRandomBotInWorldTime = config.GetIntDefault("AiPlayerbot.MinRandomBotInWorldTime", 2 * 3600);
     maxRandomBotInWorldTime = config.GetIntDefault("AiPlayerbot.MaxRandomBotInWorldTime", 14 * 24 * 3600);
-    minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 2 * 3600);
-    maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 14 * 24 * 3600);
+
+	//修改每次随机给点儿经验了。 这里的默认值太大了
+   /* minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 2 * 3600);
+    maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 14 * 24 * 3600);*/
+	minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 120);
+	//考虑每次给弹药1000个，所以，就算攻速1.0 这里也还好。
+	maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 1000);
+
     minRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MinRandomBotReviveTime", 60);
     maxRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MaxRandomReviveTime", 300);
     randomBotTeleportDistance = config.GetIntDefault("AiPlayerbot.RandomBotTeleportDistance", 1000);
@@ -224,7 +232,7 @@ void PlayerbotAIConfig::SetValue(string name, string value)
 void PlayerbotAIConfig::CreateRandomBots()
 {
     string randomBotAccountPrefix = config.GetStringDefault("AiPlayerbot.RandomBotAccountPrefix", "rndbot");
-    int32 randomBotAccountCount = config.GetIntDefault("AiPlayerbot.RandomBotAccountCount", 50);
+    int32 randomBotAccountCount = config.GetIntDefault("AiPlayerbot.RandomBotAccountCount", 5);
 
     if (config.GetBoolDefault("AiPlayerbot.DeleteRandomBotAccounts", false))
     {

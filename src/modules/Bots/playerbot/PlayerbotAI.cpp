@@ -442,7 +442,10 @@ void PlayerbotAI::DoNextAction()
             {
                 ai->SetMaster(member);
                 ai->ResetStrategies();
-                ai->TellMaster("Hello");
+
+				string msg;
+				WStrToUtf8(L"Hello,带着我们冒险吧~", msg);
+                ai->TellMaster(msg);
                 break;
             }
         }

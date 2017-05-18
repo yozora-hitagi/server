@@ -22,7 +22,10 @@ class MANGOS_DLL_SPEC RandomPlayerbotFactory
         bool CreateRandomBot(uint8 cls);
 
     private:
-        string CreateRandomBotName();
+		/**
+		数据库都改成动漫人物了。 这里加个职业区别
+		**/
+        bool CreateRandomBotName(uint8 cls,string &name,uint8 &gender);
 
     private:
         uint32 accountId;

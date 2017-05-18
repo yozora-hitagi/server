@@ -28,22 +28,27 @@ uint32 PlayerbotFactory::tradeSkills[] =
     SKILL_FISHING
 };
 
-void PlayerbotFactory::Randomize()
-{
-    Randomize(true);
-}
+//void PlayerbotFactory::Randomize()
+//{
+//    Randomize(true);
+//}
 
 void PlayerbotFactory::Refresh()
 {
     Prepare();
-    InitEquipment(true);
+   // InitEquipment(true);
+
+	ClearInventory();
+
     InitAmmo();
     InitFood();
     InitPotions();
 
-    uint32 money = urand(level * 1000, level * 5 * 1000);
+  /*  uint32 money = urand(level * 1000, level * 5 * 1000);
     if (bot->GetMoney() < money)
-        bot->SetMoney(money);
+        bot->SetMoney(money);*/
+	
+
     bot->SaveToDB();
 }
 
@@ -72,7 +77,9 @@ void PlayerbotFactory::Prepare()
         bot->ResurrectPlayer(1.0f, false);
 
     bot->CombatStop(true);
-    bot->SetLevel(level);
+   // bot->SetLevel(level);
+
+	//估摸着这两句是隐藏头盔和披风吧
     bot->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM);
     bot->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK);
 }
@@ -82,27 +89,31 @@ void PlayerbotFactory::Randomize(bool incremental)
     Prepare();
 
     bot->resetTalents(true);
-    ClearSpells();
+
+   // ClearSpells();
+	//替换上面的clear方法，但是，为啥要reset呢,所以 不reset，reset 导致技能无法学到最高级，而且根据InitAvailableSpells的逻辑，就算是商业技能，估计每次也都是一样的， 应该说，所有机器人估计都是学的一样的。
+	//bot->resetSpells();
+
     ClearInventory();
-    bot->SaveToDB();
+   // bot->SaveToDB();
 
     InitQuests();
     // quest rewards boost bot level, so reduce back
-    bot->SetLevel(level);
+    //bot->SetLevel(level);
     ClearInventory();
-    bot->SetUInt32Value(PLAYER_XP, 0);
+   // bot->SetUInt32Value(PLAYER_XP, 0);
     CancelAuras();
-    bot->SaveToDB();
+   // bot->SaveToDB();
 
-    InitAvailableSpells();
+    //InitAvailableSpells();
     InitSkills();
     InitTradeSkills();
     InitTalents();
-    InitAvailableSpells();
+    //InitAvailableSpells();
     InitSpecialSpells();
     InitMounts();
     UpdateTradeSkills();
-    bot->SaveToDB();
+  //  bot->SaveToDB();
 
     InitEquipment(incremental);
     InitBags();
@@ -111,8 +122,9 @@ void PlayerbotFactory::Randomize(bool incremental)
     InitPotions();
     InitSecondEquipmentSet();
     InitInventory();
-    bot->SetMoney(urand(level * 1000, level * 5 * 1000));
-    bot->SaveToDB();
+
+    //bot->SetMoney(urand(level * 1000, level * 5 * 1000));
+ //   bot->SaveToDB();
 
     InitPet();
     bot->SaveToDB();
@@ -221,6 +233,10 @@ void PlayerbotFactory::ClearSpells()
     }
 }
 
+/**这个技能，明显是一圈学不完整技能， 估计技能等级不会操作15，所以转个15圈
+然而没发现有地方调用，
+而且这样性能太糟糕了吧。
+**/
 void PlayerbotFactory::InitSpells()
 {
     for (int i = 0; i < 15; i++)
@@ -546,7 +562,7 @@ void PlayerbotFactory::InitEquipment(bool incremental)
     IterateItems(&visitor, ITERATE_ALL_ITEMS);
 
     map<uint8, vector<uint32> > items;
-    for(uint8 slot = 0; slot < EQUIPMENT_SLOT_END; ++slot)
+    for(uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
     {
         if (slot == EQUIPMENT_SLOT_TABARD || slot == EQUIPMENT_SLOT_BODY)
             continue;
@@ -597,7 +613,7 @@ void PlayerbotFactory::InitEquipment(bool incremental)
         } while (items[slot].empty() && desiredQuality-- > ITEM_QUALITY_NORMAL);
     }
 
-    for(uint8 slot = 0; slot < EQUIPMENT_SLOT_END; ++slot)
+    for(uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
     {
         if (slot == EQUIPMENT_SLOT_TABARD || slot == EQUIPMENT_SLOT_BODY)
             continue;
@@ -1000,9 +1016,13 @@ void PlayerbotFactory::SetRandomSkill(uint16 id)
 
 }
 
+/**
+这个技能学不完整技能， 而且感觉很浪费cpu，而且就算学商业技能， 想想有啥用呢。
+**/
 void PlayerbotFactory::InitAvailableSpells()
 {
-    bot->learnDefaultSpells();
+	//上面清空技能，这里在learndefault，明明有resetspell的方法。
+   // bot->learnDefaultSpells();
 
     for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
     {
@@ -1094,8 +1114,11 @@ void PlayerbotFactory::InitTalents(uint32 specNo)
             for (int rank = 0; rank < MAX_TALENT_RANK && bot->GetFreeTalentPoints(); ++rank)
             {
                 uint32 spellId = talentInfo->RankID[rank];
-                if (!spellId)
-                    continue;
+				if (!spellId) {
+					//continue;
+					//这个位置按我的理解，应该是某点天赋点到最大值了。才会这样，所以，不应该还是break么
+					break;
+				}
                 bot->learnSpell(spellId, false);
                 bot->UpdateFreeTalentPoints(false);
             }
@@ -1162,9 +1185,18 @@ void PlayerbotFactory::InitQuests()
         for (list<uint32>::iterator i = ids.begin(); i != ids.end(); ++i)
         {
             uint32 questId = *i;
+
+			//添加判断任务是否完成，原来的明显每次都做下任务，还重新setlevel。逻辑个人觉得很糟糕。
+			//下面的 IsRepeatable 不知道啥意思，
+			if (bot->GetQuestStatus(questId) == QUEST_STATUS_COMPLETE) {
+				continue;
+			}
+
+
             Quest const *quest = sObjectMgr.GetQuestTemplate(questId);
 
             bot->SetQuestStatus(questId, QUEST_STATUS_NONE);
+			
 
             if (!bot->SatisfyQuestClass(quest, false) ||
                     !bot->SatisfyQuestRace(quest, false) ||
@@ -1189,47 +1221,47 @@ void PlayerbotFactory::ClearInventory()
 
 void PlayerbotFactory::InitAmmo()
 {
-    if (bot->getClass() != CLASS_HUNTER && bot->getClass() != CLASS_ROGUE && bot->getClass() != CLASS_WARRIOR)
-        return;
+	if (bot->getClass() != CLASS_HUNTER && bot->getClass() != CLASS_ROGUE && bot->getClass() != CLASS_WARRIOR)
+		return;
 
-    Item* const pItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
-    if (!pItem)
-        return;
+	Item* const pItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
+	if (!pItem)
+		return;
 
-    uint32 subClass = 0;
-    switch (pItem->GetProto()->SubClass)
-    {
-    case ITEM_SUBCLASS_WEAPON_GUN:
-        subClass = ITEM_SUBCLASS_BULLET;
-        break;
-    case ITEM_SUBCLASS_WEAPON_BOW:
-    case ITEM_SUBCLASS_WEAPON_CROSSBOW:
-        subClass = ITEM_SUBCLASS_ARROW;
-        break;
-    }
+	uint32 subClass = 0;
+	switch (pItem->GetProto()->SubClass)
+	{
+	case ITEM_SUBCLASS_WEAPON_GUN:
+		subClass = ITEM_SUBCLASS_BULLET;
+		break;
+	case ITEM_SUBCLASS_WEAPON_BOW:
+	case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+		subClass = ITEM_SUBCLASS_ARROW;
+		break;
+	}
 
-    if (!subClass)
-        return;
+	if (!subClass)
+		return;
 
-    QueryResult *results = WorldDatabase.PQuery("select max(entry), max(RequiredLevel) from item_template where class = '%u' and subclass = '%u' and RequiredLevel <= '%u'",
-            ITEM_CLASS_PROJECTILE, subClass, bot->getLevel());
-    if (!results)
-        return;
+	QueryResult *results = WorldDatabase.PQuery("select max(entry), max(RequiredLevel) from item_template where class = '%u' and subclass = '%u' and RequiredLevel <= '%u'",
+		ITEM_CLASS_PROJECTILE, subClass, bot->getLevel());
+	if (!results)
+		return;
 
-    Field* fields = results->Fetch();
-    if (fields)
-    {
-        uint32 entry = fields[0].GetUInt32();
-        for (int i = 0; i < 5; i++)
-        {
-            Item* newItem = bot->StoreNewItemInInventorySlot(entry, 1000);
-            if (newItem)
-                newItem->AddToUpdateQueueOf(bot);
-        }
-        bot->SetAmmo(entry);
-    }
+	Field* fields = results->Fetch();
+	if (fields)
+	{
+		uint32 entry = fields[0].GetUInt32();
+		//for (int i = 0; i < 5; i++)
+		//{
+		Item* newItem = bot->StoreNewItemInInventorySlot(entry, 1000);
+		if (newItem)
+			newItem->AddToUpdateQueueOf(bot);
+		// }
+		bot->SetAmmo(entry);
+	}
 
-    delete results;
+	delete results;
 }
 
 void PlayerbotFactory::InitMounts()
