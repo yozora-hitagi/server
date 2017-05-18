@@ -90,7 +90,12 @@ uint32 RandomPlayerbotMgr::AddRandomBot(bool alliance)
 
     int index = urand(0, bots.size() - 1);
     uint32 bot = bots[index];
-    SetEventValue(bot, "add", 1, urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime));
+
+	uint32 add = urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime);
+    SetEventValue(bot, "add", 1, add);
+	//放到ScheduleRandomize，感觉是永远不会logout啊，所以放这里
+	//根据下面的代码，add时间到了后就不会更新bot了。 下面的logout就不会做了。 这么说来 add 感觉应该有logout的功能。
+	//SetEventValue(bot, "logout", 1, add + urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime));
     uint32 randomTime = 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3);
     ScheduleRandomize(bot, randomTime);
     sLog.outDetail("Random bot %d added", bot);
@@ -100,7 +105,8 @@ uint32 RandomPlayerbotMgr::AddRandomBot(bool alliance)
 void RandomPlayerbotMgr::ScheduleRandomize(uint32 bot, uint32 time)
 {
     SetEventValue(bot, "randomize", 1, time);
-    SetEventValue(bot, "logout", 1, time + 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
+	//这样岂不是永远不会logout了
+    //SetEventValue(bot, "logout", 1, time + 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
 }
 
 void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot)
@@ -110,13 +116,16 @@ void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot)
 
 bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
 {
+	//这里的意思是 add时间到了， 就删掉add符号。 那在这之后就永远不更新和退出了？
     uint32 isValid = GetEventValue(bot, "add");
     if (!isValid)
     {
         Player* player = GetPlayerBot(bot);
         if (!player || !player->GetGroup())
         {
-            sLog.outDetail("Bot %d expired", bot);
+			sLog.outDetail("Logging out bot %d %s", bot,player->GetName());
+			LogoutPlayerBot(bot);
+            //sLog.outDetail("Bot %d expired", bot);
             SetEventValue(bot, "add", 0, 0);
         }
         return true;
@@ -126,10 +135,12 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
     {
         sLog.outDetail("Bot %d logged in", bot);
         AddPlayerBot(bot, 0);
-        if (!GetEventValue(bot, "online"))
+
+		//这里的online 看代码感觉并没有什么用。先干掉吧
+        /*if (!GetEventValue(bot, "online"))
         {
             SetEventValue(bot, "online", 1, sPlayerbotAIConfig.minRandomBotInWorldTime);
-        }
+        }*/
         return true;
     }
 
@@ -140,6 +151,19 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
     PlayerbotAI* ai = player->GetPlayerbotAI();
     if (!ai)
         return false;
+
+
+	uint32 randomize = GetEventValue(bot, "randomize");
+	if (!randomize)
+	{
+		sLog.outDetail("Randomizing bot %d", bot);
+		Randomize(player);
+		uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
+		ScheduleRandomize(bot, randomTime);
+		return true;
+	}
+
+
 
     if (player->GetGroup())
     {
@@ -170,24 +194,15 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
         return false;
     }
 
-    uint32 randomize = GetEventValue(bot, "randomize");
-    if (!randomize)
-    {
-        sLog.outDetail("Randomizing bot %d", bot);
-        Randomize(player);
-        uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
-        ScheduleRandomize(bot, randomTime);
-        return true;
-    }
-
-    uint32 logout = GetEventValue(bot, "logout");
+  
+   /* uint32 logout = GetEventValue(bot, "logout");
     if (!logout)
     {
         sLog.outDetail("Logging out bot %d", bot);
         LogoutPlayerBot(bot);
         SetEventValue(bot, "logout", 1, sPlayerbotAIConfig.maxRandomBotInWorldTime);
         return true;
-    }
+    }*/
 
     uint32 teleport = GetEventValue(bot, "teleport");
     if (!teleport)
@@ -312,14 +327,24 @@ void RandomPlayerbotMgr::Randomize(Player* bot)
 
 void RandomPlayerbotMgr::IncreaseLevel(Player* bot)
 {
-    uint32 maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
-    uint32 level = min(bot->getLevel() + 1, maxLevel);
-    PlayerbotFactory factory(bot, level);
-    if (bot->GetGuildId())
+  /*  uint32 maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
+    uint32 level = min(bot->getLevel() + 1, maxLevel);*/
+
+	//个人修改为一段时间获取多少经验，另外去掉factory里面的setlevel方法
+	//看代码，改等级应该用givelevel方法，而不是set， givelevel 会发出等级变化的通知。
+	uint16 xp = urand(20, 100);
+	bot->GiveXP(xp,NULL);
+	bot->ModifyMoney(urand(0, 100));
+
+    PlayerbotFactory factory(bot, bot->getLevel());
+    /*if (bot->GetGuildId())
         factory.Refresh();
     else
-        factory.Randomize();
-    RandomTeleportForLevel(bot);
+        factory.Randomize();*/
+	factory.Refresh();
+
+	if (!bot->GetGroup())
+		RandomTeleportForLevel(bot);
 }
 
 void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
@@ -328,7 +353,19 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
     if (maxLevel > sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
-    for (int attempt = 0; attempt < 100; ++attempt)
+	//简化第一次等级随机的策略，因为地图高等级比低等级多，所以，随意等级会有倾向性，完全随机个人觉得理论表现应该更好。
+	uint32 level = urand(sPlayerbotAIConfig.randomBotMinLevel, maxLevel);
+	if (urand(0, 100) < 100 * sPlayerbotAIConfig.randomBotMaxLevelChance)
+		level = maxLevel;
+
+	bot->GiveLevel(level);
+
+	/*PlayerbotFactory factory(bot, level);
+	factory.RandomizeFirst();*/
+
+	RandomTeleportForLevel(bot);
+
+  /*  for (int attempt = 0; attempt < 100; ++attempt)
     {
         int index = urand(0, sPlayerbotAIConfig.randomBotMaps.size() - 1);
         uint32 mapId = sPlayerbotAIConfig.randomBotMaps[index];
@@ -363,7 +400,7 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
         factory.CleanRandomize();
         RandomTeleport(bot, tele->mapId, tele->position_x, tele->position_y, tele->position_z);
         break;
-    }
+    }*/
 }
 
 uint32 RandomPlayerbotMgr::GetZoneLevel(uint32 mapId, float teleX, float teleY, float teleZ)
@@ -483,28 +520,27 @@ vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
     }
 
     vector<uint32> guids;
-    for (list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); i++)
-    {
-        uint32 accountId = *i;
-        if (!sAccountMgr.GetCharactersCount(accountId))
-            continue;
+	for (list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); i++)
+	{
+		uint32 accountId = *i;
+		if (!sAccountMgr.GetCharactersCount(accountId))
+			continue;
 
-        QueryResult *result = CharacterDatabase.PQuery("SELECT guid, race FROM characters WHERE account = '%u'", accountId);
-        if (!result)
-            continue;
+		QueryResult *result = CharacterDatabase.PQuery("SELECT guid, race FROM characters WHERE account = '%u'", accountId);
+		if (!result)
+			continue;
 
-        do
-        {
-            Field* fields = result->Fetch();
-            uint32 guid = fields[0].GetUInt32();
-            uint32 race = fields[1].GetUInt32();
-            if (bots.find(guid) == bots.end() &&
-                    ((alliance && IsAlliance(race)) || ((!alliance && !IsAlliance(race))
-            )))
-                guids.push_back(guid);
-        } while (result->NextRow());
-        delete result;
-    }
+		do
+		{
+			Field* fields = result->Fetch();
+			uint32 guid = fields[0].GetUInt32();
+			uint32 race = fields[1].GetUInt32();
+			if (bots.find(guid) == bots.end() &&
+				(( alliance && IsAlliance(race) ) || (( !alliance && !IsAlliance(race) ))))
+				guids.push_back(guid);
+		} while (result->NextRow());
+		delete result;
+	}
 
 
     return guids;

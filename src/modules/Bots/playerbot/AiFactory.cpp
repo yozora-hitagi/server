@@ -106,91 +106,98 @@ map<uint32, int32> AiFactory::GetPlayerSpecTabs(Player* bot)
 
 void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const facade, Engine* engine)
 {
-    int tab = GetPlayerSpecTab(player);
+	//小于10级的时候没天赋，导致tab==0 ，导致一些职业不放技能不打架 光逃跑。
+	int tab = -1;
+	if (player->getLevel() > 10) {
+		tab = GetPlayerSpecTab(player);
+	}
+	engine->addStrategies("attack weak", "racials", "chat", "default", "aoe", "potions", "cast time", "conserve mana", "duel", "pvp", NULL);
 
-    engine->addStrategies("attack weak", "racials", "chat", "default", "aoe", "potions", "cast time", "conserve mana", "duel", "pvp", NULL);
+	switch (player->getClass())
+	{
+	case CLASS_PRIEST:
+		if (tab == -1) {
+			engine->addStrategies("heal", "dps", "threat", NULL);
+		}
+		else  if (tab == 2) {
+			engine->addStrategies("dps", "threat", NULL);
+			if (player->getLevel() > 19)
+				engine->addStrategy("dps debuff");
+		}
+		else
+			engine->addStrategy("heal");
 
-    switch (player->getClass())
-    {
-        case CLASS_PRIEST:
-            if (tab == 2)
-            {
-                engine->addStrategies("dps", "threat", NULL);
-                if (player->getLevel() > 19)
-                    engine->addStrategy("dps debuff");
-            }
-            else
-                engine->addStrategy("heal");
+		engine->addStrategy("flee");
+		break;
+	case CLASS_MAGE:
+		if (tab == -1) {
+			engine->addStrategies("frost", "threat", NULL);
+		}else if (tab == 0)
+			engine->addStrategies("arcane", "threat", NULL);
+		else if (tab == 1)
+			engine->addStrategies("fire", "fire aoe", "threat", NULL);
+		else
+			engine->addStrategies("frost", "frost aoe", "threat", NULL);
 
-            engine->addStrategy("flee");
-            break;
-        case CLASS_MAGE:
-            if (tab == 0)
-                engine->addStrategies("arcane", "threat", NULL);
-            else if (tab == 1)
-                engine->addStrategies("fire", "fire aoe", "threat", NULL);
-            else
-                engine->addStrategies("frost", "frost aoe", "threat", NULL);
+		engine->addStrategy("flee");
+		break;
+	case CLASS_WARRIOR:
+		if (tab == 2)
+			engine->addStrategies("tank", "tank aoe", NULL);
+		else
+			engine->addStrategies("dps", "threat", NULL);
+		break;
+	case CLASS_SHAMAN:
+		if (tab == 0)
+			engine->addStrategies("caster", "caster aoe", "bmana", "threat", "flee", NULL);
+		else if (tab == 2)
+			engine->addStrategies("heal", "bmana", "flee", NULL);
+		else
+			engine->addStrategies("dps", "melee aoe", "bdps", "threat", NULL);
+		break;
+	case CLASS_PALADIN:
+		if (tab == 1)
+			engine->addStrategies("tank", "tank aoe", "barmor", NULL);
+		else
+			engine->addStrategies("dps", "bdps", "threat", NULL);
+		break;
+	case CLASS_DRUID:
+		if (tab == 0 || tab == -1)
+		{
+			engine->addStrategies("caster", "caster aoe", "threat", "flee", NULL);
+			if (player->getLevel() > 19)
+				engine->addStrategy("caster debuff");
+		}
+		else if (tab == 2)
+			engine->addStrategies("heal", "flee", NULL);
+		else
+			engine->addStrategies("bear", "tank aoe", "threat", "flee", NULL);
+		break;
+	case CLASS_HUNTER:
+		engine->addStrategies("dps", "bdps", "threat", NULL);
+		if (player->getLevel() > 19)
+			engine->addStrategy("dps debuff");
+		break;
+	case CLASS_ROGUE:
+		engine->addStrategies("dps", "threat", NULL);
+		break;
+	case CLASS_WARLOCK:
+		if (tab == 1)
+			engine->addStrategies("tank", "threat", NULL);
+		else
+			engine->addStrategies("dps", "threat", NULL);
 
-            engine->addStrategy("flee");
-            break;
-        case CLASS_WARRIOR:
-            if (tab == 2)
-                engine->addStrategies("tank", "tank aoe", NULL);
-            else
-                engine->addStrategies("dps", "threat", NULL);
-            break;
-        case CLASS_SHAMAN:
-            if (tab == 0)
-                engine->addStrategies("caster", "caster aoe", "bmana", "threat", "flee", NULL);
-            else if (tab == 2)
-                engine->addStrategies("heal", "bmana", "flee", NULL);
-            else
-                engine->addStrategies("dps", "melee aoe", "bdps", "threat", NULL);
-            break;
-        case CLASS_PALADIN:
-            if (tab == 1)
-                engine->addStrategies("tank", "tank aoe", "barmor", NULL);
-            else
-                engine->addStrategies("dps", "bdps", "threat", NULL);
-            break;
-        case CLASS_DRUID:
-            if (tab == 0)
-            {
-                engine->addStrategies("caster", "caster aoe", "threat", "flee", NULL);
-                if (player->getLevel() > 19)
-                    engine->addStrategy("caster debuff");
-            }
-            else if (tab == 2)
-                engine->addStrategies("heal", "flee", NULL);
-            else
-                engine->addStrategies("bear", "tank aoe", "threat", "flee", NULL);
-            break;
-        case CLASS_HUNTER:
-            engine->addStrategies("dps", "bdps", "threat", NULL);
-            if (player->getLevel() > 19)
-                engine->addStrategy("dps debuff");
-            break;
-        case CLASS_ROGUE:
-            engine->addStrategies("dps", "threat", NULL);
-            break;
-        case CLASS_WARLOCK:
-            if (tab == 1)
-                engine->addStrategies("tank", "threat", NULL);
-            else
-                engine->addStrategies("dps", "threat", NULL);
+		if (player->getLevel() > 19)
+			engine->addStrategy("dps debuff");
 
-            if (player->getLevel() > 19)
-                engine->addStrategy("dps debuff");
+		engine->addStrategy("flee");
+		break;
+	}
 
-            engine->addStrategy("flee");
-            break;
-    }
-
-    if (sRandomPlayerbotMgr.IsRandomBot(player) && !player->GetGroup())
-    {
-        engine->ChangeStrategy(sPlayerbotAIConfig.randomBotCombatStrategies);
-    }
+	if (sRandomPlayerbotMgr.IsRandomBot(player) && !player->GetGroup())
+	{
+		engine->ChangeStrategy(sPlayerbotAIConfig.randomBotCombatStrategies);
+	}
 }
 
 Engine* AiFactory::createCombatEngine(Player* player, PlayerbotAI* const facade, AiObjectContext* AiObjectContext) {
