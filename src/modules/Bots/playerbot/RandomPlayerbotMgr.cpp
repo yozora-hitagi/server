@@ -27,7 +27,7 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
     if (!sPlayerbotAIConfig.randomBotAutologin || !sPlayerbotAIConfig.enabled)
         return;
 
-    sLog.outBasic("Processing random bots...");
+    //sLog.outBasic("Processing random bots...");
 
     int maxAllowedBotCount = GetEventValue(0, "bot_count");
     if (!maxAllowedBotCount)
@@ -163,7 +163,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
 		return true;
 	}
 
-
+	
 
     if (player->GetGroup())
     {
@@ -294,6 +294,9 @@ void RandomPlayerbotMgr::RandomTeleportForLevel(Player* bot)
     RandomTeleport(bot, locs);
 }
 
+/******************************
+这个位置，先随机到一个地图， 然后 在 refresh ， 在bot更新线程里面死了后会通过这个方法 刷成活的。
+*****/
 void RandomPlayerbotMgr::RandomTeleport(Player* bot, uint32 mapId, float teleX, float teleY, float teleZ)
 {
     vector<WorldLocation> locs;
