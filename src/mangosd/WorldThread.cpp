@@ -40,6 +40,10 @@
 #include "LuaEngine.h" 
 #endif /* ENABLE_ELUNA */ 
 
+#ifdef ENABLE_PLAYERBOTS
+#include "RandomPlayerbotMgr.h"
+#endif
+
 #define WORLD_SLEEP_CONST 50
 
 #ifdef WIN32
@@ -106,6 +110,12 @@ int WorldThread::svc()
             Sleep(1000);
 #endif
     }
+
+#ifdef ENABLE_PLAYERBOTS
+	//关闭的时候，因为在析构函数中调用了 登出机器人，导致空指针。这里提前登出。
+	sRandomPlayerbotMgr.LogoutAllBots();
+#endif
+
 #ifdef ENABLE_ELUNA
     sEluna->OnShutdown();
 #endif /* ENABLE_ELUNA */

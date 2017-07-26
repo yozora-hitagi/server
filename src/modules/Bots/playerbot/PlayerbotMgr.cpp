@@ -18,7 +18,8 @@ PlayerbotHolder::PlayerbotHolder() : PlayerbotAIBase()
 
 PlayerbotHolder::~PlayerbotHolder()
 {
-    LogoutAllBots();
+	//在 WorldThread 中已经提前调用了。 这里 调用也应该是空转，而且，这里本来就不会调用成功。因为数据库连接在这之前应该已经关闭了。
+    //LogoutAllBots();
 }
 
 

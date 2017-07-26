@@ -782,7 +782,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", false);
 
 #ifdef ENABLE_PLAYERBOTS
-    setConfig(CONFIG_BOOL_PLAYERBOT_DISABLE, "PlayerbotAI.DisableBots", true);
+    setConfig(CONFIG_BOOL_PLAYERBOT_DISABLE, "PlayerbotAI.DisableBots", false);//之前写的true，首先这里的设置貌似就没地方用，然后不知道后面比如脚本什么的是不是有可能用到，不太清楚，先保留并默认改成false
     setConfig(CONFIG_BOOL_PLAYERBOT_DEBUGWHISPER, "PlayerbotAI.DebugWhisper", false);
     setConfigMinMax(CONFIG_UINT32_PLAYERBOT_MAXBOTS, "PlayerbotAI.MaxNumBots", 3, 1, 9);
     setConfigMinMax(CONFIG_UINT32_PLAYERBOT_RESTRICTLEVEL, "PlayerbotAI.RestrictBotLevel", getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL), 1, getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL));
@@ -1512,16 +1512,21 @@ void World::showFooter()
 #endif
 
     // PLAYERBOTS can be included or excluded but also disabled via mangos.conf
+	//这里的配置项，搜索后感觉都没用过。
+//#ifdef ENABLE_PLAYERBOTS
+//    bool playerBotActive = sConfig.GetBoolDefault("PlayerbotAI.DisableBots", true);
+//    if (playerBotActive)
+//    {
+//        modules_.insert("            PlayerBots : Disabled");
+//    }
+//    else
+//    {
+//        modules_.insert("            PlayerBots : Enabled");
+//    }
+//#endif
+
 #ifdef ENABLE_PLAYERBOTS
-    bool playerBotActive = sConfig.GetBoolDefault("PlayerbotAI.DisableBots", true);
-    if (playerBotActive)
-    {
-        modules_.insert("            PlayerBots : Disabled");
-    }
-    else
-    {
-        modules_.insert("            PlayerBots : Enabled");
-    }
+		modules_.insert("            PlayerBots : Enabled");
 #endif
 
     // Remote Access can be activated / deactivated via mangos.conf
