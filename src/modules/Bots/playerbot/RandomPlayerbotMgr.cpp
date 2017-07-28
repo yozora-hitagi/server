@@ -22,32 +22,37 @@ RandomPlayerbotMgr::~RandomPlayerbotMgr()
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 {
-    SetNextCheckDelay(sPlayerbotAIConfig.randomBotUpdateInterval * 1000);
+	clock_t start_time=clock();
+
+	uint32 interval = urand(sPlayerbotAIConfig.randomBotUpdateMinInterval, sPlayerbotAIConfig.randomBotUpdateMaxInterval);
+    SetNextCheckDelay(interval * 1000);
 
     if (!sPlayerbotAIConfig.randomBotAutologin || !sPlayerbotAIConfig.enabled)
         return;
 
     //sLog.outBasic("Processing random bots...");
 
-    int maxAllowedBotCount = GetEventValue(0, "bot_count");
+	//这里count 会在时间后 重新换， 本着减少数据库操作的想法，先把这里干掉吧，以后再说。
+    /*int maxAllowedBotCount = GetEventValue(0, "bot_count");
     if (!maxAllowedBotCount)
     {
         maxAllowedBotCount = urand(sPlayerbotAIConfig.minRandomBots, sPlayerbotAIConfig.maxRandomBots);
         SetEventValue(0, "bot_count", maxAllowedBotCount,
                 urand(sPlayerbotAIConfig.randomBotCountChangeMinInterval, sPlayerbotAIConfig.randomBotCountChangeMaxInterval));
-    }
+    }*/
 
-    list<uint32> bots = GetBots();
-    int botCount = bots.size();
+    //list<uint32> bots = GetBots();
+	list<uint32> bots;//觉得这个位置没必要遍历拿出来， 后面然后又查找，虽然查找应该很快。
+    int botCount = playerBots.size();
     int allianceNewBots = 0, hordeNewBots = 0;
-    int randomBotsPerInterval = (int)urand(sPlayerbotAIConfig.minRandomBotsPerInterval, sPlayerbotAIConfig.maxRandomBotsPerInterval);
+ /*   int randomBotsPerInterval = (int)urand(sPlayerbotAIConfig.minRandomBotsPerInterval, sPlayerbotAIConfig.maxRandomBotsPerInterval);
     if (!processTicks)
     {
         if (sPlayerbotAIConfig.randomBotLoginAtStartup)
             randomBotsPerInterval = bots.size();
-    }
+    }*/
 
-    while (botCount++ < maxAllowedBotCount)
+    while (botCount++ < sPlayerbotAIConfig.randomBotsCount)
     {
         bool alliance = botCount % 2;
         uint32 bot = AddRandomBot(alliance);
@@ -68,18 +73,31 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
     for (list<uint32>::iterator i = bots.begin(); i != bots.end(); ++i)
     {
         uint32 bot = *i;
-        if (ProcessBot(bot))
+        if (ProcessBot(bot,NULL))
             botProcessed++;
 
-        if (botProcessed >= randomBotsPerInterval)
-            break;
+        //if (botProcessed >= randomBotsPerInterval)//这代码是不是有问题， 这样不是每次都只能刷新前面的机器人， 后面的可能永远不会刷新
+        //    break;
     }
 
-    sLog.outString("%d bots processed. %d alliance and %d horde bots added. %d bots online. Next check in %d seconds",
-            botProcessed, allianceNewBots, hordeNewBots, playerBots.size(), sPlayerbotAIConfig.randomBotUpdateInterval);
+	//已登录的直接遍历不好么
+	for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
+	{
+		Player* bot = it->second;
+		if (ProcessBot(NULL, bot))
+			botProcessed++;
+	}
+
+	//这里的 clock 貌似要 配合 CLOCKS_PER_SEC 一起使用， 在windows下 貌似返回的是 ms ，在别的地方就不一定了。
+	clock_t update_cost = clock() - start_time;
+
+	sLog.outString("%d bots processed. %d alliance and %d horde bots added. %d bots online. Next check in %d seconds",
+		botProcessed, allianceNewBots, hordeNewBots, playerBots.size(), interval);
 
     if (processTicks++ == 1)
         PrintStats();
+
+
 }
 
 uint32 RandomPlayerbotMgr::AddRandomBot(bool alliance)
@@ -91,69 +109,96 @@ uint32 RandomPlayerbotMgr::AddRandomBot(bool alliance)
     int index = urand(0, bots.size() - 1);
     uint32 bot = bots[index];
 
-	uint32 add = urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime);
-    SetEventValue(bot, "add", 1, add);
+	//uint32 add = urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime);
+    //SetEventValue(bot, "add", 1, add);
 	//放到ScheduleRandomize，感觉是永远不会logout啊，所以放这里
 	//根据下面的代码，add时间到了后就不会更新bot了。 下面的logout就不会做了。 这么说来 add 感觉应该有logout的功能。
 	//SetEventValue(bot, "logout", 1, add + urand(sPlayerbotAIConfig.minRandomBotInWorldTime, sPlayerbotAIConfig.maxRandomBotInWorldTime));
-    uint32 randomTime = 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3);
-    ScheduleRandomize(bot, randomTime);
-    sLog.outDetail("Random bot %d added", bot);
+    //uint32 randomTime = 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3);
+    //ScheduleRandomize(bot, randomTime);
+   // sLog.outDetail("Random bot %d added", bot);
     return bot;
 }
 
-void RandomPlayerbotMgr::ScheduleRandomize(uint32 bot, uint32 time)
-{
-    SetEventValue(bot, "randomize", 1, time);
-	//这样岂不是永远不会logout了
-    //SetEventValue(bot, "logout", 1, time + 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
-}
+//void RandomPlayerbotMgr::ScheduleRandomize(uint32 bot, uint32 time)
+//{
+//    SetEventValue(bot, "randomize", 1, time);
+//	//这样岂不是永远不会logout了
+//    //SetEventValue(bot, "logout", 1, time + 30 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
+//}
 
-void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot)
-{
-    SetEventValue(bot, "teleport", 1, 60 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
-}
+//void RandomPlayerbotMgr::ScheduleTeleport(uint32 bot)
+//{
+//    SetEventValue(bot, "teleport", 1, 60 + urand(sPlayerbotAIConfig.randomBotUpdateInterval, sPlayerbotAIConfig.randomBotUpdateInterval * 3));
+//}
 
-bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
+bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 {
 	//这里的意思是 add时间到了， 就删掉add符号。 那在这之后就永远不更新和退出了？
-    uint32 isValid = GetEventValue(bot, "add");
-    if (!isValid)
-    {
-        Player* player = GetPlayerBot(bot);
-        if (!player || !player->GetGroup())
-        {
-			sLog.outDetail("Logging out bot %d %s", bot,player->GetName());
-			LogoutPlayerBot(bot);
-            //sLog.outDetail("Bot %d expired", bot);
-            SetEventValue(bot, "add", 0, 0);
-        }
-        return true;
-    }
+   // uint32 isValid = GetEventValue(bot, "add");
+   // if (!isValid)
+   // {
+   //     Player* player = GetPlayerBot(bot);
+   //     if (!player || !player->GetGroup())
+   //     {
+			//sLog.outDetail("Logging out bot %d %s", bot,player->GetName());
+			//LogoutPlayerBot(bot);
+   //         //sLog.outDetail("Bot %d expired", bot);
+   //         SetEventValue(bot, "add", 0, 0);
+   //     }
+   //     return true;
+   // }
+	Player* player;
+	if (bot) {
+		player = GetPlayerBot(bot);
+		if (!player)
+		{
+			sLog.outDetail("Bot %d logged in", bot);
+			AddPlayerBot(bot, 0);
 
-    if (!GetPlayerBot(bot))
-    {
-        sLog.outDetail("Bot %d logged in", bot);
-        AddPlayerBot(bot, 0);
-
-		//这里的online 看代码感觉并没有什么用。先干掉吧
-        /*if (!GetEventValue(bot, "online"))
-        {
-            SetEventValue(bot, "online", 1, sPlayerbotAIConfig.minRandomBotInWorldTime);
-        }*/
-        return true;
-    }
-
-    Player* player = GetPlayerBot(bot);
-    if (!player)
-        return false;
+			//这里的online 看代码感觉并没有什么用。先干掉吧
+			/*if (!GetEventValue(bot, "online"))
+			{
+				SetEventValue(bot, "online", 1, sPlayerbotAIConfig.minRandomBotInWorldTime);
+			}*/
+			return true;
+		}
+	}
+	else if (_player) {
+		player = _player;
+	}
+	else {
+		return false;
+	}
+    
 
     PlayerbotAI* ai = player->GetPlayerbotAI();
     if (!ai)
         return false;
 
+	
 
-	uint32 randomize = GetEventValue(bot, "randomize");
+	if (!player->GetGroup()) {
+		uint32 t = time(0);
+		uint32 t1 =player->m_logintime +sPlayerbotAIConfig.minRandomBotInWorldTime;
+		if (t > t1) {
+			uint32 t2 = player->m_logintime + sPlayerbotAIConfig.minRandomBotInWorldTime;
+			if (t > t2) {
+				LogoutPlayerBot(bot);
+				sLog.outDetail("Bot %d logged out", bot);
+				return true;
+			}
+
+			if (urand(0, 100) < 5) {//当到了登出的时间范围的时候， 每次检查有百分之5的几率下线
+				LogoutPlayerBot(bot);
+				sLog.outDetail("Bot %d logged out", bot);
+				return true;
+			}
+		}
+	}
+
+
+	/*uint32 randomize = GetEventValue(bot, "randomize");
 	if (!randomize)
 	{
 		sLog.outDetail("Randomizing bot %d", bot);
@@ -161,19 +206,36 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
 		uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
 		ScheduleRandomize(bot, randomTime);
 		return true;
-	}
-
+	}*/
+	//update时间 改成了 范围的，这里改成每次 都随机一下。
+	Randomize(player);
 	
 
-    if (player->GetGroup())
-    {
-        sLog.outDetail("Skipping bot %d as it is in group", bot);
-        return false;
-    }
+    //if (player->GetGroup())
+    //{
+    //    sLog.outDetail("Skipping bot %d as it is in group", bot);
+    //    return false;
+    //}
 
     if (player->IsDead())
     {
-        if (!GetEventValue(bot, "dead"))
+		if (!player->GetGroup()) {//如果机器人死了，那多半打不过怪，所以，换个地方。。是用这个方法，还是 forlevel 那个？
+			//事实上这个方法半天都刷在原地
+			//RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+			RandomTeleportForLevel(player);
+			return true;
+		}
+		//直接 信春哥
+		PlayerbotChatHandler ch(player);
+		ch.revive(*player);
+		player->GetPlayerbotAI()->ResetStrategies();
+
+		//这段代码没用
+		//string msg;
+		//WStrToUtf8(L"信春哥！原地复活！", msg);
+		//player->Yell(msg, 0);
+
+        /*if (!GetEventValue(bot, "dead"))
         {
             sLog.outDetail("Setting dead flag for bot %d", bot);
             uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotReviveTime, sPlayerbotAIConfig.maxRandomBotReviveTime);
@@ -189,9 +251,9 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
             SetEventValue(bot, "revive", 0, 0);
             RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
             return true;
-        }
+        }*/
 
-        return false;
+       // return false;
     }
 
   
@@ -204,14 +266,15 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
         return true;
     }*/
 
-    uint32 teleport = GetEventValue(bot, "teleport");
+	//上面每次 都随机 里面已经包含 tele 了。 而且。 在考虑升级的时候tele 一下就行了。 没必要老是随机传送。
+   /* uint32 teleport = GetEventValue(bot, "teleport");
     if (!teleport)
     {
         sLog.outDetail("Random teleporting bot %d", bot);
         RandomTeleportForLevel(ai->GetBot());
         SetEventValue(bot, "teleport", 1, sPlayerbotAIConfig.maxRandomBotInWorldTime);
         return true;
-    }
+    }*/
 
     return false;
 }
@@ -292,6 +355,9 @@ void RandomPlayerbotMgr::RandomTeleportForLevel(Player* bot)
     }
 
     RandomTeleport(bot, locs);
+
+	//下面的这个调用的refresh的方法没地方调用了。 所以先把refresh 方法在这里掉一下， 感觉改的有些问题了。 先思考一下。
+	Refresh(bot);
 }
 
 /******************************
@@ -335,7 +401,8 @@ void RandomPlayerbotMgr::IncreaseLevel(Player* bot)
 
 	//个人修改为一段时间获取多少经验，另外去掉factory里面的setlevel方法
 	//看代码，改等级应该用givelevel方法，而不是set， givelevel 会发出等级变化的通知。
-	uint16 xp = urand(20, 100);
+	//所有等级经验都差不多不太好。
+	uint16 xp = urand(20, 100) + bot->getLevel();
 	bot->GiveXP(xp,NULL);
 	bot->ModifyMoney(urand(0, 100));
 
@@ -344,10 +411,11 @@ void RandomPlayerbotMgr::IncreaseLevel(Player* bot)
         factory.Refresh();
     else
         factory.Randomize();*/
-	factory.Refresh();
+	factory.Supply();
 
-	if (!bot->GetGroup())
-		RandomTeleportForLevel(bot);
+	//每次加经验就随机，感觉没必要。在 levelupaction 里面调用了一下， 这里就不调用了。
+	/*if (!bot->GetGroup())
+		RandomTeleportForLevel(bot);*/
 }
 
 void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
@@ -483,11 +551,23 @@ bool RandomPlayerbotMgr::IsRandomBot(uint32 bot)
     return GetEventValue(bot, "add");
 }
 
+/**
+之前是查询的ai_playerbot_random_bots表，想稍微提高性能，想干掉这张表，所以这里从已登录里面拿数据，更直接。
+
+表里面的意思应该是添加进来需要登录的机器人，这里这是获取在线机器人
+*/
 list<uint32> RandomPlayerbotMgr::GetBots()
 {
     list<uint32> bots;
 
-    QueryResult* results = CharacterDatabase.Query(
+	for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
+	{
+		Player* bot = it->second;
+		bots.push_back(bot->GetObjectGuid().GetRawValue());
+	}
+
+
+  /*  QueryResult* results = CharacterDatabase.Query(
             "select bot from ai_playerbot_random_bots where owner = 0 and event = 'add'");
 
     if (results)
@@ -499,16 +579,18 @@ list<uint32> RandomPlayerbotMgr::GetBots()
             bots.push_back(bot);
         } while (results->NextRow());
         delete results;
-    }
+    }*/
 
     return bots;
 }
 
+/**
+上面getbots 方法变了， 这里也要变
+*/
 vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
 {
-    set<uint32> bots;
-
-    QueryResult* results = CharacterDatabase.PQuery(
+//    set<uint32> bots;
+  /*  QueryResult* results = CharacterDatabase.PQuery(
             "select `bot` from ai_playerbot_random_bots where event = 'add'");
 
     if (results)
@@ -521,7 +603,7 @@ vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
         } while (results->NextRow());
         delete results;
     }
-
+*/
     vector<uint32> guids;
 	for (list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); i++)
 	{
@@ -538,7 +620,7 @@ vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
 			Field* fields = result->Fetch();
 			uint32 guid = fields[0].GetUInt32();
 			uint32 race = fields[1].GetUInt32();
-			if (bots.find(guid) == bots.end() &&
+			if (playerBots.find(guid) == playerBots.end() &&
 				(( alliance && IsAlliance(race) ) || (( !alliance && !IsAlliance(race) ))))
 				guids.push_back(guid);
 		} while (result->NextRow());
@@ -644,14 +726,14 @@ bool ChatHandler::HandlePlayerbotConsoleCommand(char* args)
                     else
                     {
                         sLog.outDetail("Refreshing bot %s for account %u", bot->GetName(), account);
-                        bot->SetLevel(bot->getLevel() - 1);
+                        //bot->SetLevel(bot->getLevel() - 1);
                         sRandomPlayerbotMgr.IncreaseLevel(bot);
                     }
-                    uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
+                   /* uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
                     CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'randomize' and bot = '%u'",
                             randomTime, bot->GetGUIDLow());
                     CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'logout' and bot = '%u'",
-                            sPlayerbotAIConfig.maxRandomBotInWorldTime, bot->GetGUIDLow());
+                            sPlayerbotAIConfig.maxRandomBotInWorldTime, bot->GetGUIDLow());*/
                 } while (results->NextRow());
 
                 delete results;

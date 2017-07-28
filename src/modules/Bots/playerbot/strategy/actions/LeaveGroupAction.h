@@ -15,21 +15,28 @@ namespace ai
 			//这时候队伍中至少两个机器人
 			//那么第一个机器人判断在队伍中就回继续下去，对master说bye，然后离队。
 			//第二个机器人就不在队伍，就不会说bye。
-            if (!bot->GetGroup())
-                return false;
+			// 最后个离开队伍的 master 没 设置NULL
+			if (!bot->GetGroup() && !ai->GetMaster()) {
+				return false;
+			}
 
             ai->TellMaster("Goodbye!", PLAYERBOT_SECURITY_TALK);
 
-            WorldPacket p;
-            string member = bot->GetName();
-            p << uint32(PARTY_OP_LEAVE) << member << uint32(0);
-            bot->GetSession()->HandleGroupDisbandOpcode(p);
+			if (bot->GetGroup()) {
+				WorldPacket p;
+				string member = bot->GetName();
+				p << uint32(PARTY_OP_LEAVE) << member << uint32(0);
+				bot->GetSession()->HandleGroupDisbandOpcode(p);
+			}
 
             if (sRandomPlayerbotMgr.IsRandomBot(bot))
             {
                 bot->GetPlayerbotAI()->SetMaster(NULL);
-                sRandomPlayerbotMgr.ScheduleTeleport(bot->GetGUIDLow());
+                //sRandomPlayerbotMgr.ScheduleTeleport(bot->GetGUIDLow());
                 sRandomPlayerbotMgr.SetLootAmount(bot, 0);
+
+				sRandomPlayerbotMgr.RandomTeleportForLevel(bot);
+
             }
 
             ai->ResetStrategies();

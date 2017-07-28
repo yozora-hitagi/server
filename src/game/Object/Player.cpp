@@ -6031,7 +6031,8 @@ void Player::UpdateHonor()
     uint32 lastWeekBegin = thisWeekBegin - 7;
     uint32 lastWeekEnd   = lastWeekBegin + 7;
 
-    DETAIL_LOG("PLAYER: UpdateHonor");
+	//原来是 DETAIL_LOG ，觉得这里可以用 DEBUG_LOG
+	DEBUG_LOG("PLAYER: UpdateHonor");
 
     uint32 total_dishonorableKills = GetHonorStoredKills(false);
     uint32 total_honorableKills = GetHonorStoredKills(true);

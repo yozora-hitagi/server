@@ -33,13 +33,17 @@ public:
     uint32 randomBotTeleportDistance;
     float randomGearLoweringChance;
     float randomBotMaxLevelChance;
-    uint32 minRandomBots, maxRandomBots;
-    uint32 randomBotUpdateInterval, randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
+
+    //uint32 minRandomBots, maxRandomBots;
+	uint32 randomBotsCount;
+
+	uint32 randomBotUpdateMinInterval, randomBotUpdateMaxInterval;
+	//uint32 randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
     uint32 minRandomBotInWorldTime, maxRandomBotInWorldTime;
-    uint32 minRandomBotRandomizeTime, maxRandomBotRandomizeTime;
+    //uint32 minRandomBotRandomizeTime, maxRandomBotRandomizeTime;
     uint32 minRandomBotReviveTime, maxRandomBotReviveTime;
     uint32 minRandomBotPvpTime, maxRandomBotPvpTime;
-    uint32 minRandomBotsPerInterval, maxRandomBotsPerInterval;
+   // uint32 minRandomBotsPerInterval, maxRandomBotsPerInterval;
     uint32 minRandomBotsPriceChangeInterval, maxRandomBotsPriceChangeInterval;
     bool randomBotJoinLfg;
     bool randomBotLoginAtStartup;

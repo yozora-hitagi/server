@@ -29,7 +29,7 @@ void LoadList(string value, T &list)
 
 bool PlayerbotAIConfig::Initialize()
 {
-    sLog.outString("Initializing AI Playerbot by ike3, based on the original Playerbot by blueboy");
+    //sLog.outString("Initializing AI Playerbot by ike3, based on the original Playerbot by blueboy");
 
     if (!config.SetSource(SYSCONFDIR"aiplayerbot.conf"))
     {
@@ -68,7 +68,7 @@ bool PlayerbotAIConfig::Initialize()
     mediumMana = config.GetIntDefault("AiPlayerbot.MediumMana", 40);
 
     randomGearLoweringChance = config.GetFloatDefault("AiPlayerbot.RandomGearLoweringChance", 0.15f);
-    randomBotMaxLevelChance = config.GetFloatDefault("AiPlayerbot.RandomBotMaxLevelChance", 0.4f);
+    randomBotMaxLevelChance = config.GetFloatDefault("AiPlayerbot.RandomBotMaxLevelChance", 0.02f);
 
     iterationsPerTick = config.GetIntDefault("AiPlayerbot.IterationsPerTick", 4);
 
@@ -85,27 +85,37 @@ bool PlayerbotAIConfig::Initialize()
 
     randomBotAutologin = config.GetBoolDefault("AiPlayerbot.RandomBotAutologin", true);
 
-    minRandomBots = config.GetIntDefault("AiPlayerbot.MinRandomBots", 20);
-    maxRandomBots = config.GetIntDefault("AiPlayerbot.MaxRandomBots", 45);
+	//反正在数据那里也是只随机一次，不如在配置文件就定下来。还免得每次循环查数据库
+    //minRandomBots = config.GetIntDefault("AiPlayerbot.MinRandomBots", 20);
+    //maxRandomBots = config.GetIntDefault("AiPlayerbot.MaxRandomBots", 45);
+	randomBotsCount= config.GetIntDefault("AiPlayerbot.RandomBotsCount", 45);
 
-    randomBotUpdateInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateInterval", 60);
-    randomBotCountChangeMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMinInterval", 24 * 3600);
-    randomBotCountChangeMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMaxInterval", 3 * 24 * 3600);
+	//把原来的 固定的更新间隔 改成了浮动的
+	randomBotUpdateMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMinInterval", 60);
+	randomBotUpdateMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMaxInterval", 120);
+
+    //randomBotCountChangeMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMinInterval", 24 * 3600);
+    //randomBotCountChangeMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMaxInterval", 3 * 24 * 3600);
+
     minRandomBotInWorldTime = config.GetIntDefault("AiPlayerbot.MinRandomBotInWorldTime", 2 * 3600);
     maxRandomBotInWorldTime = config.GetIntDefault("AiPlayerbot.MaxRandomBotInWorldTime", 14 * 24 * 3600);
 
 	//修改每次随机给点儿经验了。 这里的默认值太大了
    /* minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 2 * 3600);
     maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 14 * 24 * 3600);*/
-	minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 120);
+
+	//更新循环变了。 这里用不上了
+	//minRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MinRandomBotRandomizeTime", 120);
 	//考虑每次给弹药1000个，所以，就算攻速1.0 这里也还好。
-	maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 1000);
+	//maxRandomBotRandomizeTime = config.GetIntDefault("AiPlayerbot.MaxRandomRandomizeTime", 1000);
 
     minRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MinRandomBotReviveTime", 60);
     maxRandomBotReviveTime = config.GetIntDefault("AiPlayerbot.MaxRandomReviveTime", 300);
     randomBotTeleportDistance = config.GetIntDefault("AiPlayerbot.RandomBotTeleportDistance", 1000);
-    minRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MinRandomBotsPerInterval", 50);
-    maxRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MaxRandomBotsPerInterval", 100);
+
+    //minRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MinRandomBotsPerInterval", 50);
+    //maxRandomBotsPerInterval = config.GetIntDefault("AiPlayerbot.MaxRandomBotsPerInterval", 100);
+
     minRandomBotsPriceChangeInterval = config.GetIntDefault("AiPlayerbot.MinRandomBotsPriceChangeInterval", 2 * 3600);
     maxRandomBotsPriceChangeInterval = config.GetIntDefault("AiPlayerbot.MaxRandomBotsPriceChangeInterval", 48 * 3600);
     randomBotJoinLfg = config.GetBoolDefault("AiPlayerbot.RandomBotJoinLfg", true);
