@@ -27,7 +27,7 @@ class MANGOS_DLL_SPEC RandomPlayerbotMgr : public PlayerbotHolder
         void Randomize(Player* bot);
         void RandomizeFirst(Player* bot);
         void IncreaseLevel(Player* bot);
-        void ScheduleTeleport(uint32 bot);
+       // void ScheduleTeleport(uint32 bot);
         void HandleCommand(uint32 type, const string& text, Player& fromPlayer);
         void OnPlayerLogout(Player* player);
         void OnPlayerLogin(Player* player);
@@ -40,6 +40,8 @@ class MANGOS_DLL_SPEC RandomPlayerbotMgr : public PlayerbotHolder
         uint32 GetTradeDiscount(Player* bot);
         void Refresh(Player* bot);
 
+		//考虑每次升级的时候调用下 随机，所以这里改成public方法。
+		void RandomTeleportForLevel(Player* bot);
     protected:
         virtual void OnBotLoginInternal(Player * const bot) {}
 
@@ -49,10 +51,10 @@ class MANGOS_DLL_SPEC RandomPlayerbotMgr : public PlayerbotHolder
         list<uint32> GetBots();
         vector<uint32> GetFreeBots(bool alliance);
         uint32 AddRandomBot(bool alliance);
-        bool ProcessBot(uint32 bot);
-        void ScheduleRandomize(uint32 bot, uint32 time);
+        bool ProcessBot(uint32 bot, Player* player);
+       // void ScheduleRandomize(uint32 bot, uint32 time);
         void RandomTeleport(Player* bot, uint32 mapId, float teleX, float teleY, float teleZ);
-        void RandomTeleportForLevel(Player* bot);
+        
         void RandomTeleport(Player* bot, vector<WorldLocation> &locs);
         uint32 GetZoneLevel(uint32 mapId, float teleX, float teleY, float teleZ);
 

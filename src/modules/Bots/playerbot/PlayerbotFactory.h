@@ -18,7 +18,9 @@ public:
     static ObjectGuid GetRandomBot();
     void CleanRandomize();
     void Randomize();
-    void Refresh();
+	void Refresh();
+
+	void Supply();
 
 private:
     void Randomize(bool incremental);

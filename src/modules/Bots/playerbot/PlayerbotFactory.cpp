@@ -33,6 +33,25 @@ uint32 PlayerbotFactory::tradeSkills[] =
 //    Randomize(true);
 //}
 
+/**
+Refresh 存库， 如果在循环中，是不是太慢了。
+*/
+void PlayerbotFactory::Supply()
+{
+	Prepare();
+	// InitEquipment(true);
+
+	ClearInventory();
+
+	InitAmmo();
+	InitFood();
+	InitPotions();
+
+	/*  uint32 money = urand(level * 1000, level * 5 * 1000);
+	if (bot->GetMoney() < money)
+	bot->SetMoney(money);*/
+}
+
 void PlayerbotFactory::Refresh()
 {
     Prepare();
@@ -1254,7 +1273,9 @@ void PlayerbotFactory::InitAmmo()
 		uint32 entry = fields[0].GetUInt32();
 		//for (int i = 0; i < 5; i++)
 		//{
-		Item* newItem = bot->StoreNewItemInInventorySlot(entry, 1000);
+
+		//这里是装填弹药，显示给了1000发， 因为每次刷新都刷一下， 所以没必要给这么多。刷新时间默认是60-120, 按一秒两发给弹药，应该绰绰有余了。
+		Item* newItem = bot->StoreNewItemInInventorySlot(entry, sPlayerbotAIConfig.randomBotUpdateMaxInterval * 2);
 		if (newItem)
 			newItem->AddToUpdateQueueOf(bot);
 		// }

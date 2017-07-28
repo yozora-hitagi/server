@@ -31,6 +31,10 @@ namespace ai
 			PlayerbotFactory factory(bot, level);
 			factory.CleanRandomize();
 
+			if (!bot->GetGroup()) {
+				sRandomPlayerbotMgr.RandomTeleportForLevel(bot);
+			}
+
 			return true;
 		}
 
