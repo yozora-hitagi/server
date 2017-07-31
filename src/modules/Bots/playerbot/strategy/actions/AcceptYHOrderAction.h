@@ -30,9 +30,7 @@ namespace ai
 				uint32 itemId = *itemIds.begin();
 				//5863 公会登记表
 				if (itemId == 5863) {
-					string msg;
-					WStrToUtf8(L"直接对我要求签名就行了，别再用命令做了~", msg);
-					ai->TellMaster(msg);
+					ai->TellMaster(string(WStrToUtf8(L"直接对我要求签名就行了，别再用命令做了~")));
 					/*uint32 entry = ai->GetMaster()->GetObjectGuid();
 					QueryResult* result = CharacterDatabase.PQuery("SELECT petitionguid FROM petition WHERE ownerguid = '%u'", entry);
 					if (result) {

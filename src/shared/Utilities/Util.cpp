@@ -415,6 +415,12 @@ bool WStrToUtf8(std::wstring wstr, std::string& utf8str)
     return true;
 }
 
+const char * WStrToUtf8(std::wstring wstr) {
+	std::string msg;
+	WStrToUtf8(wstr, msg);
+	return msg.c_str();
+}
+
 typedef wchar_t const* const* wstrlist;
 
 bool utf8ToConsole(const std::string& utf8str, std::string& conStr)

@@ -300,6 +300,11 @@ bool WStrToUtf8(std::wstring wstr, std::string& utf8str);
 bool WStrToUtf8(wchar_t* wstr, size_t size, std::string& utf8str);
 
 /**
+添加一个把WStr 转换 直接返回的方法，方便调用。
+WStr  用  L"字符串" 表示
+*/
+const char * WStrToUtf8(std::wstring wstr);
+/**
  * @brief
  *
  * @param utf8str
