@@ -14,6 +14,7 @@ INSTANTIATE_SINGLETON_1(RandomPlayerbotMgr);
 
 RandomPlayerbotMgr::RandomPlayerbotMgr() : PlayerbotHolder(), processTicks(0)
 {
+	flag_bot = GetPlayerBotsBegin();
 }
 
 RandomPlayerbotMgr::~RandomPlayerbotMgr()
@@ -22,77 +23,92 @@ RandomPlayerbotMgr::~RandomPlayerbotMgr()
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 {
-	clock_t start_time=clock();
+	clock_t start_time = clock();
 
-	uint32 interval = urand(sPlayerbotAIConfig.randomBotUpdateMinInterval, sPlayerbotAIConfig.randomBotUpdateMaxInterval);
-    SetNextCheckDelay(interval * 1000);
+	//uint32 interval = urand(sPlayerbotAIConfig.randomBotUpdateMinInterval, sPlayerbotAIConfig.randomBotUpdateMaxInterval);
+	SetNextCheckDelay(sPlayerbotAIConfig.randomBotUpdateStepInterval * 1000);
 
-    if (!sPlayerbotAIConfig.randomBotAutologin || !sPlayerbotAIConfig.enabled)
-        return;
+	if (!sPlayerbotAIConfig.randomBotAutologin || !sPlayerbotAIConfig.enabled)
+		return;
 
-    //sLog.outBasic("Processing random bots...");
+	//sLog.outBasic("Processing random bots...");
 
 	//这里count 会在时间后 重新换， 本着减少数据库操作的想法，先把这里干掉吧，以后再说。
-    /*int maxAllowedBotCount = GetEventValue(0, "bot_count");
-    if (!maxAllowedBotCount)
-    {
-        maxAllowedBotCount = urand(sPlayerbotAIConfig.minRandomBots, sPlayerbotAIConfig.maxRandomBots);
-        SetEventValue(0, "bot_count", maxAllowedBotCount,
-                urand(sPlayerbotAIConfig.randomBotCountChangeMinInterval, sPlayerbotAIConfig.randomBotCountChangeMaxInterval));
-    }*/
-
-    //list<uint32> bots = GetBots();
-	list<uint32> bots;//觉得这个位置没必要遍历拿出来， 后面然后又查找，虽然查找应该很快。
-    int botCount = playerBots.size();
-    int allianceNewBots = 0, hordeNewBots = 0;
- /*   int randomBotsPerInterval = (int)urand(sPlayerbotAIConfig.minRandomBotsPerInterval, sPlayerbotAIConfig.maxRandomBotsPerInterval);
-    if (!processTicks)
-    {
-        if (sPlayerbotAIConfig.randomBotLoginAtStartup)
-            randomBotsPerInterval = bots.size();
-    }*/
-
-    while (botCount++ < sPlayerbotAIConfig.randomBotsCount)
-    {
-        bool alliance = botCount % 2;
-        uint32 bot = AddRandomBot(alliance);
-        if (bot)
-        {
-            if (alliance)
-                allianceNewBots++;
-            else
-                hordeNewBots++;
-
-            bots.push_back(bot);
-        }
-        else
-            break;
-    }
-
-    int botProcessed = 0;
-    for (list<uint32>::iterator i = bots.begin(); i != bots.end(); ++i)
-    {
-        uint32 bot = *i;
-        if (ProcessBot(bot,NULL))
-            botProcessed++;
-
-        //if (botProcessed >= randomBotsPerInterval)//这代码是不是有问题， 这样不是每次都只能刷新前面的机器人， 后面的可能永远不会刷新
-        //    break;
-    }
-
-	//已登录的直接遍历不好么
-	for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
+	/*int maxAllowedBotCount = GetEventValue(0, "bot_count");
+	if (!maxAllowedBotCount)
 	{
-		Player* bot = it->second;
-		if (ProcessBot(NULL, bot))
-			botProcessed++;
+		maxAllowedBotCount = urand(sPlayerbotAIConfig.minRandomBots, sPlayerbotAIConfig.maxRandomBots);
+		SetEventValue(0, "bot_count", maxAllowedBotCount,
+				urand(sPlayerbotAIConfig.randomBotCountChangeMinInterval, sPlayerbotAIConfig.randomBotCountChangeMaxInterval));
+	}*/
+
+	//list<uint32> bots = GetBots();
+	//list<uint32> bots;//觉得这个位置没必要遍历拿出来， 后面然后又查找，虽然查找应该很快。
+	int botCount = playerBots.size();
+	//int allianceNewBots = 0, hordeNewBots = 0;
+	/*   int randomBotsPerInterval = (int)urand(sPlayerbotAIConfig.minRandomBotsPerInterval, sPlayerbotAIConfig.maxRandomBotsPerInterval);
+	   if (!processTicks)
+	   {
+		   if (sPlayerbotAIConfig.randomBotLoginAtStartup)
+			   randomBotsPerInterval = bots.size();
+	   }*/
+
+	while (botCount++ < sPlayerbotAIConfig.randomBotsCount)
+	{
+		bool alliance = botCount % 2;
+		uint32 bot = AddRandomBot(alliance);
+		if (bot)
+		{
+			/*if (alliance)
+				allianceNewBots++;
+			else
+				hordeNewBots++;*/
+
+			//bots.push_back(bot);
+
+			//添加机器人的时候就初始化一下，免得下面还要遍历一遍
+			ProcessBot(bot, NULL);
+		}
+		else
+			break;
 	}
+
+	//int botProcessed = 0;
+	//for (list<uint32>::iterator i = bots.begin(); i != bots.end(); ++i)
+	//{
+	//    uint32 bot = *i;
+	//    if (ProcessBot(bot,NULL))
+	//        botProcessed++;
+
+	//    //if (botProcessed >= randomBotsPerInterval)//这代码是不是有问题， 这样不是每次都只能刷新前面的机器人， 后面的可能永远不会刷新
+	//    //    break;
+	//}
+
+
+	//改成一次 一个step 更新一个机器人状态
+	if (flag_bot != GetPlayerBotsEnd()) {
+		Player* bot = flag_bot->second;
+		ProcessBot(NULL, bot);
+		sLog.outDetail("Bot update : %s", bot->GetName());
+		flag_bot++;
+	}
+	else {
+		flag_bot = GetPlayerBotsBegin();
+	}
+	
+	//已登录的直接遍历不好么
+	//for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
+	//{
+	//	Player* bot = it->second;
+	//	if (ProcessBot(NULL, bot))
+	//		botProcessed++;
+	//}
 
 	//这里的 clock 貌似要 配合 CLOCKS_PER_SEC 一起使用， 在windows下 貌似返回的是 ms ，在别的地方就不一定了。
 	clock_t update_cost = clock() - start_time;
 
-	sLog.outString("%d bots processed. %d alliance and %d horde bots added. %d bots online. Next check in %d seconds",
-		botProcessed, allianceNewBots, hordeNewBots, playerBots.size(), interval);
+	//sLog.outString("%d bots processed. %d alliance and %d horde bots added. %d bots online. Next check in %d seconds",
+	//	botProcessed, allianceNewBots, hordeNewBots, playerBots.size(), interval);
 
     if (processTicks++ == 1)
         PrintStats();
@@ -182,7 +198,7 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 		uint32 t = time(0);
 		uint32 t1 =player->m_logintime +sPlayerbotAIConfig.minRandomBotInWorldTime;
 		if (t > t1) {
-			uint32 t2 = player->m_logintime + sPlayerbotAIConfig.minRandomBotInWorldTime;
+			uint32 t2 = player->m_logintime + sPlayerbotAIConfig.maxRandomBotInWorldTime;
 			if (t > t2) {
 				LogoutPlayerBot(bot);
 				sLog.outDetail("Bot %d logged out", bot);
@@ -195,6 +211,9 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 				return true;
 			}
 		}
+
+		//未组队的机器人，全部就不刷新了。减少CPU，全部挂机。
+		return true;
 	}
 
 
@@ -219,12 +238,16 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 
     if (player->IsDead())
     {
-		if (!player->GetGroup()) {//如果机器人死了，那多半打不过怪，所以，换个地方。。是用这个方法，还是 forlevel 那个？
-			//事实上这个方法半天都刷在原地
-			//RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
-			RandomTeleportForLevel(player);
-			return true;
-		}
+		//如果没组队的机器人都不刷新了。 那么死就死了。不用管了。
+		//if (!player->GetGroup()) {//如果机器人死了，那多半打不过怪，所以，换个地方。。是用这个方法，还是 forlevel 那个？
+		//	//事实上这个方法半天都刷在原地
+		//	//RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+		//	RandomTeleportForLevel(player);
+		//	return true;
+		//}
+
+
+
 		//直接 信春哥
 		PlayerbotChatHandler ch(player);
 		ch.revive(*player);

@@ -37,7 +37,8 @@ public:
     //uint32 minRandomBots, maxRandomBots;
 	uint32 randomBotsCount;
 
-	uint32 randomBotUpdateMinInterval, randomBotUpdateMaxInterval;
+	//uint32 randomBotUpdateMinInterval, randomBotUpdateMaxInterval;
+	uint32 randomBotUpdateStepInterval;
 	//uint32 randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
     uint32 minRandomBotInWorldTime, maxRandomBotInWorldTime;
     //uint32 minRandomBotRandomizeTime, maxRandomBotRandomizeTime;

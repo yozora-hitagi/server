@@ -1,0 +1,2 @@
+--侏儒术士 召唤小鬼的任务 掉落羽毛
+INSERT INTO `mangos0`.`creature_loot_template` (`entry`, `item`, `ChanceOrQuestChance`, `groupid`, `mincountOrRef`, `maxcount`, `condition_id`) VALUES ('706', '6753', '45', '0', '1', '1', '9');

@@ -91,8 +91,9 @@ bool PlayerbotAIConfig::Initialize()
 	randomBotsCount= config.GetIntDefault("AiPlayerbot.RandomBotsCount", 45);
 
 	//把原来的 固定的更新间隔 改成了浮动的
-	randomBotUpdateMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMinInterval", 60);
-	randomBotUpdateMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMaxInterval", 120);
+	/*randomBotUpdateMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMinInterval", 60);
+	randomBotUpdateMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateMaxInterval", 120);*/
+	randomBotUpdateStepInterval = config.GetIntDefault("AiPlayerbot.RandomBotUpdateStepInterval", 10);
 
     //randomBotCountChangeMinInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMinInterval", 24 * 3600);
     //randomBotCountChangeMaxInterval = config.GetIntDefault("AiPlayerbot.RandomBotCountChangeMaxInterval", 3 * 24 * 3600);

@@ -1274,8 +1274,8 @@ void PlayerbotFactory::InitAmmo()
 		//for (int i = 0; i < 5; i++)
 		//{
 
-		//这里是装填弹药，显示给了1000发， 因为每次刷新都刷一下， 所以没必要给这么多。刷新时间默认是60-120, 按一秒两发给弹药，应该绰绰有余了。
-		Item* newItem = bot->StoreNewItemInInventorySlot(entry, sPlayerbotAIConfig.randomBotUpdateMaxInterval * 2);
+		//这里是装填弹药，给1000发
+		Item* newItem = bot->StoreNewItemInInventorySlot(entry, 1000);
 		if (newItem)
 			newItem->AddToUpdateQueueOf(bot);
 		// }
