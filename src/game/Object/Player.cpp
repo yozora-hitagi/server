@@ -1261,7 +1261,10 @@ void Player::Update(uint32 update_diff, uint32 p_time)
             else
             {
                 q_status.m_timer -= update_diff;
-                if (q_status.uState != QUEST_NEW) { q_status.uState = QUEST_CHANGED; }
+                if (q_status.uState != QUEST_NEW)
+                {
+                    q_status.uState = QUEST_CHANGED;
+                }
                 ++iter;
             }
         }
@@ -2162,7 +2165,10 @@ void Player::RegenerateHealth()
     uint32 curValue = GetHealth();
     uint32 maxValue = GetMaxHealth();
 
-    if (curValue >= maxValue) { return; }
+    if (curValue >= maxValue)
+    {
+        return;
+    }
 
     float HealthIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_HEALTH);
 
@@ -7737,7 +7743,10 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
     {
         uint32 enchant_id = item->GetEnchantmentId(EnchantmentSlot(e_slot));
         SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
-        if (!pEnchant) { continue; }
+        if (!pEnchant)
+        {
+            continue;
+        }
         for (int s = 0; s < 3; ++s)
         {
             uint32 proc_spell_id = pEnchant->spellid[s];
@@ -10336,7 +10345,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
         Item*  pItem = pItems[k];
 
         // no item
-        if (!pItem)  { continue; }
+        if (!pItem)
+        {
+            continue;
+        }
 
         DEBUG_LOG("STORAGE: CanStoreItems %i. item = %u, count = %u", k + 1, pItem->GetEntry(), pItem->GetCount());
         ItemPrototype const* pProto = pItem->GetProto();
@@ -10384,7 +10396,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                     break;
                 }
             }
-            if (b_found) { continue; }
+            if (b_found)
+            {
+                continue;
+            }
 
             for (int t = INVENTORY_SLOT_ITEM_START; t < INVENTORY_SLOT_ITEM_END; ++t)
             {
@@ -10396,7 +10411,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                     break;
                 }
             }
-            if (b_found) { continue; }
+            if (b_found)
+            {
+                continue;
+            }
 
             for (int t = INVENTORY_SLOT_BAG_START; !b_found && t < INVENTORY_SLOT_BAG_END; ++t)
             {
@@ -10415,7 +10433,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                     }
                 }
             }
-            if (b_found) { continue; }
+            if (b_found)
+            {
+                continue;
+            }
         }
 
         // special bag case
@@ -10436,7 +10457,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                 }
             }
 
-            if (b_found) { continue; }
+            if (b_found)
+            {
+                continue;
+            }
 
             for (int t = INVENTORY_SLOT_BAG_START; !b_found && t < INVENTORY_SLOT_BAG_END; ++t)
             {
@@ -10461,7 +10485,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                     }
                 }
             }
-            if (b_found) { continue; }
+            if (b_found)
+            {
+                continue;
+            }
         }
 
         // search free slot
@@ -10475,7 +10502,10 @@ InventoryResult Player::CanStoreItems(Item** pItems, int count) const
                 break;
             }
         }
-        if (b_found) { continue; }
+        if (b_found)
+        {
+            continue;
+        }
 
         // search free slot in bags
         for (int t = INVENTORY_SLOT_BAG_START; !b_found && t < INVENTORY_SLOT_BAG_END; ++t)
@@ -12514,7 +12544,10 @@ void Player::RemoveItemFromBuyBackSlot(uint32 slot, bool del)
         if (pItem)
         {
             pItem->RemoveFromWorld();
-            if (del) { pItem->SetState(ITEM_REMOVED, this); }
+            if (del)
+            {
+                pItem->SetState(ITEM_REMOVED, this);
+            }
         }
 
         m_items[slot] = NULL;
@@ -14794,7 +14827,10 @@ void Player::AdjustQuestReqItemCount(Quest const* pQuest, QuestStatusData& quest
                 uint32 curitemcount = GetItemCount(pQuest->ReqItemId[i], true);
 
                 questStatusData.m_itemcount[i] = std::min(curitemcount, reqitemcount);
-                if (questStatusData.uState != QUEST_NEW) { questStatusData.uState = QUEST_CHANGED; }
+                if (questStatusData.uState != QUEST_NEW)
+                {
+                    questStatusData.uState = QUEST_CHANGED;
+                }
             }
         }
     }
@@ -14952,7 +14988,10 @@ void Player::ItemRemovedQuestCheck(uint32 entry, uint32 count)
                 {
                     uint32 remitemcount = (curitemcount <= reqitemcount ? count : count + reqitemcount - curitemcount);
                     q_status.m_itemcount[j] = curitemcount - remitemcount;
-                    if (q_status.uState != QUEST_NEW) { q_status.uState = QUEST_CHANGED; }
+                    if (q_status.uState != QUEST_NEW)
+                    {
+                        q_status.uState = QUEST_CHANGED;
+                    }
 
                     IncompleteQuest(questid);       // UpdateForQuestWorldObjects() inside
                 }
@@ -15175,7 +15214,10 @@ void Player::TalkedToCreature(uint32 entry, ObjectGuid guid)
                         if (curTalkCount < reqTalkCount)
                         {
                             q_status.m_creatureOrGOcount[j] = curTalkCount + addTalkCount;
-                            if (q_status.uState != QUEST_NEW) { q_status.uState = QUEST_CHANGED; }
+                            if (q_status.uState != QUEST_NEW)
+                            {
+                                q_status.uState = QUEST_CHANGED;
+                            }
 
                             SendQuestUpdateAddCreatureOrGo(qInfo, guid, j, q_status.m_creatureOrGOcount[j]);
                         }
@@ -16617,7 +16659,7 @@ void Player::_LoadInventory(QueryResult* result, uint32 timediff)
             std::string content = GetSession()->GetMangosString(LANG_NOT_EQUIPPED_ITEM);
             // fill mail
             MailDraft draft(subject);
-            draft.SetSubjectAndBody(subject,content); 
+            draft.SetSubjectAndBody(subject,content);
             for (int i = 0; !problematicItems.empty() && i < MAX_MAIL_ITEMS; ++i)
             {
                 Item* item = problematicItems.front();
@@ -16995,7 +17037,10 @@ void Player::_LoadBoundInstances(QueryResult* result)
 
             // since non permanent binds are always solo bind, they can always be reset
             DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, instanceId, resetTime, !perm, true);
-            if (state) { BindToInstance(state, perm, true); }
+            if (state)
+            {
+                BindToInstance(state, perm, true);
+            }
         }
         while (result->NextRow());
         delete result;
@@ -17630,7 +17675,10 @@ void Player::_SaveInventory()
     for (uint8 i = BUYBACK_SLOT_START; i < BUYBACK_SLOT_END; ++i)
     {
         Item* item = m_items[i];
-        if (!item || item->GetState() == ITEM_NEW) { continue; }
+        if (!item || item->GetState() == ITEM_NEW)
+        {
+            continue;
+        }
 
         static SqlStatementID delInv ;
         static SqlStatementID delItemInst ;
@@ -17651,14 +17699,20 @@ void Player::_SaveInventory()
     }
 
     // if no changes
-    if (m_itemUpdateQueue.empty()) { return; }
+    if (m_itemUpdateQueue.empty())
+    {
+        return;
+    }
 
     // do not save if the update queue is corrupt
     bool error = false;
     for (size_t i = 0; i < m_itemUpdateQueue.size(); ++i)
     {
         Item* item = m_itemUpdateQueue[i];
-        if (!item || item->GetState() == ITEM_REMOVED) { continue; }
+        if (!item || item->GetState() == ITEM_REMOVED)
+        {
+            continue;
+        }
         Item* test = GetItemByPos(item->GetBagSlot(), item->GetSlot());
 
         if (test == NULL)
@@ -17687,7 +17741,10 @@ void Player::_SaveInventory()
     for (size_t i = 0; i < m_itemUpdateQueue.size(); ++i)
     {
         Item* item = m_itemUpdateQueue[i];
-        if (!item) { continue; }
+        if (!item)
+        {
+            continue;
+        }
 
         Bag* container = item->GetContainer();
         uint32 bag_guid = container ? container->GetGUIDLow() : 0;
@@ -19319,7 +19376,10 @@ void Player::InitDisplayIds()
 bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot)
 {
     // cheating attempt
-    if (count < 1) { count = 1; }
+    if (count < 1)
+    {
+        count = 1;
+    }
 
     if (!IsAlive())
     {
@@ -19612,8 +19672,14 @@ void Player::AddSpellAndCategoryCooldowns(SpellEntry const* spellInfo, uint32 it
         }
 
         // replace negative cooldowns by 0
-        if (rec < 0) { rec = 0; }
-        if (catrec < 0) { catrec = 0; }
+        if (rec < 0)
+        {
+            rec = 0;
+        }
+        if (catrec < 0)
+        {
+            catrec = 0;
+        }
 
         // no cooldown after applying spell mods
         if (rec == 0 && catrec == 0)
@@ -19962,8 +20028,14 @@ void Player::AddComboPoints(Unit* target, int8 count)
         target->AddComboPointHolder(GetGUIDLow());
     }
 
-    if (m_comboPoints > 5) { m_comboPoints = 5; }
-    if (m_comboPoints < 0) { m_comboPoints = 0; }
+    if (m_comboPoints > 5)
+    {
+        m_comboPoints = 5;
+    }
+    if (m_comboPoints < 0)
+    {
+        m_comboPoints = 0;
+    }
 
     SetComboPoints();
 }
