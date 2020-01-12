@@ -15,7 +15,9 @@ bool RewardAction::Execute(Event event)
 
     ItemIds itemIds = chat->parseItems(link);
     if (itemIds.empty())
+    {
         return false;
+    }
 
     uint32 itemId = *itemIds.begin();
 
@@ -24,7 +26,9 @@ bool RewardAction::Execute(Event event)
     {
         Unit* npc = ai->GetUnit(*i);
         if (npc && Reward(itemId, npc))
+        {
             return true;
+        }
     }
 
     list<ObjectGuid> gos = AI_VALUE(list<ObjectGuid>, "nearest game objects");
@@ -32,7 +36,9 @@ bool RewardAction::Execute(Event event)
     {
         GameObject* go = ai->GetGameObject(*i);
         if (go && Reward(itemId, go))
+        {
             return true;
+        }
     }
 
     ai->TellMaster("Cannot talk to quest giver");
