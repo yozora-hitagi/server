@@ -86,6 +86,7 @@ if(NOT MySQL_FOUND)
     PATHS
       "C:/Program Files/MySQL/lib"
       "C:/MySQL/lib/debug"
+      "C:/MySQL/lib"
       ${_MySQL_paths}
       /usr
       /usr/local/
