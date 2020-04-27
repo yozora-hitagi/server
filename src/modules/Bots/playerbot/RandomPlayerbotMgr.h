@@ -28,7 +28,10 @@ class MANGOS_DLL_SPEC RandomPlayerbotMgr : public PlayerbotHolder
         void RandomizeFirst(Player* bot);
         void IncreaseLevel(Player* bot);
        // void ScheduleTeleport(uint32 bot);
-        void HandleCommand(uint32 type, const string& text, Player& fromPlayer);
+		void HandleCommand(uint32 type, const string& text, Player& fromPlayer);
+
+		void HandleChannelMessage(Channel* chn, uint32 type, const string& text, Player& fromPlayer);
+
         void OnPlayerLogout(Player* player);
         void OnPlayerLogin(Player* player);
         Player* GetRandomPlayer();
@@ -61,7 +64,8 @@ class MANGOS_DLL_SPEC RandomPlayerbotMgr : public PlayerbotHolder
     private:
         vector<Player*> players;
         int processTicks;
-		PlayerBotMap::const_iterator flag_bot;
+		//PlayerBotMap::const_iterator flag_bot;
+		uint32 flag_bot;
 };
 
 #define sRandomPlayerbotMgr MaNGOS::Singleton<RandomPlayerbotMgr>::Instance()

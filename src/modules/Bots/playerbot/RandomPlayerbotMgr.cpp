@@ -14,7 +14,7 @@ INSTANTIATE_SINGLETON_1(RandomPlayerbotMgr);
 
 RandomPlayerbotMgr::RandomPlayerbotMgr() : PlayerbotHolder(), processTicks(0)
 {
-	flag_bot = GetPlayerBotsBegin();
+	flag_bot = 0;
 }
 
 RandomPlayerbotMgr::~RandomPlayerbotMgr()
@@ -53,6 +53,32 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 			   randomBotsPerInterval = bots.size();
 	   }*/
 
+	//轮询查看是否有联盟或者部落玩家在线，下面 会根据情况刷新机器人。
+	//bool has_alliance = false;
+	//bool has_horde = false;
+	//SessionMap const& smap = sWorld.GetAllSessions();
+	//SessionMap::const_iterator iter;
+	//for (iter = smap.begin(); iter != smap.end(); ++iter)
+	//{
+	//	if (Player* player = iter->second->GetPlayer())
+	//	{
+	//		if (player->GetPlayerbotAI()) {
+	//			continue;
+	//		}
+	//		if (IsAlliance(player->getRace()))
+	//		{
+	//			has_alliance = true;
+	//		}
+	//		else {
+	//			has_horde = true;
+	//		}
+	//		if (has_alliance && has_horde) {
+	//			break;
+	//		}
+	//	}
+	//}
+
+
 	while (botCount++ < sPlayerbotAIConfig.randomBotsCount)
 	{
 		bool alliance = botCount % 2;
@@ -84,17 +110,23 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 	//    //    break;
 	//}
 
+	//改成用 数字 每次查找，  用迭代器 指针， 如果 机器人登出，是不是 可能出问题。
+	PlayerBotMap::const_iterator bot_it;
+	uint32 bot_i;
+	for (bot_it = GetPlayerBotsBegin(), bot_i = 0; bot_it != GetPlayerBotsEnd() && bot_i<flag_bot; bot_it++,bot_i++) {
+		
+	}
 
 	//改成一次 一个step 更新一个机器人状态
-	if (flag_bot != GetPlayerBotsEnd()) {
-		Player* bot = flag_bot->second;
+	if (bot_it != GetPlayerBotsEnd()) {
+		Player* bot = bot_it->second;
 		ProcessBot(NULL, bot);
 		sLog.outDetail("Bot update : %s", bot->GetName());
 		flag_bot++;
 	}
-	else {
-		flag_bot = GetPlayerBotsBegin();
-	}
+	
+	flag_bot = (flag_bot + 1) % playerBots.size();
+	
 	
 	//已登录的直接遍历不好么
 	//for (PlayerBotMap::const_iterator it = GetPlayerBotsBegin(); it != GetPlayerBotsEnd(); ++it)
@@ -425,8 +457,12 @@ void RandomPlayerbotMgr::IncreaseLevel(Player* bot)
 	//个人修改为一段时间获取多少经验，另外去掉factory里面的setlevel方法
 	//看代码，改等级应该用givelevel方法，而不是set， givelevel 会发出等级变化的通知。
 	//所有等级经验都差不多不太好。
-	uint16 xp = urand(20, 100) + bot->getLevel();
-	bot->GiveXP(xp,NULL);
+
+	if (!bot->GetGroup()) {
+		//在队伍中没必要额外加经验
+		uint16 xp = urand(20, 100) + bot->getLevel();
+		bot->GiveXP(xp, NULL);
+	}
 	bot->ModifyMoney(urand(0, 100));
 
     PlayerbotFactory factory(bot, bot->getLevel());
@@ -784,6 +820,12 @@ void RandomPlayerbotMgr::HandleCommand(uint32 type, const string& text, Player& 
         Player* const bot = it->second;
         bot->GetPlayerbotAI()->HandleCommand(type, text, fromPlayer);
     }
+}
+
+
+void RandomPlayerbotMgr::HandleChannelMessage(Channel* chn, uint32 type, const string& text, Player& fromPlayer)
+{
+
 }
 
 void RandomPlayerbotMgr::OnPlayerLogout(Player* player)

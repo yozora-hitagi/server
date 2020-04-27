@@ -48,6 +48,12 @@ namespace ai
 			WStrToUtf8(wstring(L"哈哈~ 让我们一起快乐的冒险吧！"), msg);
 
             ai->TellMaster(msg);
+
+
+			//这里添加邀请组队的时候，如果等级 1 ，就和玩家等级一样
+			if (bot->getLevel() == 1) {
+				bot->GiveLevel(inviter->getLevel());
+			}
 			
 
 			//添加 邀请了就传送到跟前的代码

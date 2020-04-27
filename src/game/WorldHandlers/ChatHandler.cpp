@@ -738,6 +738,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                         _player->GetPlayerbotMgr()->HandleCommand(type, msg);
                     }
                     sRandomPlayerbotMgr.HandleCommand(type, msg, *_player);
+
+					//添加 方法处理 channel 中的发言
+					sRandomPlayerbotMgr.HandleChannelMessage(chn, type, msg, *_player);
 #endif /* ENABLE_PLAYERBOTS */
                     chn->Say(_player, msg.c_str(), lang);
                 }
