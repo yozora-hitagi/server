@@ -385,11 +385,12 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, ACE_Th
         static std::string GetTimestampStr();
         /**
          * @brief
-         *
+         * 原来方法体在头文件定义，但是位运算结果总是0，方法体放到 cpp 中了，结果就对了。
          * @param filter
          * @return bool
          */
-        bool HasLogFilter(uint32 filter) const { return m_logFilter & filter; }
+		bool HasLogFilter(uint32 filter) const;
+
         /**
          * @brief
          *

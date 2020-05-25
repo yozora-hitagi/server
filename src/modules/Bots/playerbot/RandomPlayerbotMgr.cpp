@@ -23,7 +23,7 @@ RandomPlayerbotMgr::~RandomPlayerbotMgr()
 
 void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 {
-	clock_t start_time = clock();
+	//clock_t start_time = clock();
 
 	//uint32 interval = urand(sPlayerbotAIConfig.randomBotUpdateMinInterval, sPlayerbotAIConfig.randomBotUpdateMaxInterval);
 	SetNextCheckDelay(sPlayerbotAIConfig.randomBotUpdateStepInterval * 1000);
@@ -123,7 +123,7 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 		ProcessBot(NULL, bot);
 		sLog.outDetail("Bot update : %s", bot->GetName());
 		flag_bot++;
-		flag_bot = (flag_bot + 1) % playerBots.size();
+		flag_bot = flag_bot % playerBots.size();
 	}
 	
 	
@@ -137,7 +137,7 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 	//}
 
 	//这里的 clock 貌似要 配合 CLOCKS_PER_SEC 一起使用， 在windows下 貌似返回的是 ms ，在别的地方就不一定了。
-	clock_t update_cost = clock() - start_time;
+	//clock_t update_cost = clock() - start_time;
 
 	//sLog.outString("%d bots processed. %d alliance and %d horde bots added. %d bots online. Next check in %d seconds",
 	//	botProcessed, allianceNewBots, hordeNewBots, playerBots.size(), interval);

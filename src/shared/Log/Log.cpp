@@ -319,6 +319,12 @@ void Log::Initialize()
     m_charLog_Dump = sConfig.GetBoolDefault("CharLogDump", false);
 }
 
+//原来方法体在头文件定义，但是位运算结果总是0，方法体放到 cpp 中了，结果就对了。
+bool Log::HasLogFilter(uint32 filter) const {
+	uint32 has = m_logFilter & filter;
+	return has;
+}
+
 FILE* Log::openLogFile(char const* configFileName, char const* configTimeStampFlag, char const* mode)
 {
     std::string logfn = sConfig.GetStringDefault(configFileName, "");
