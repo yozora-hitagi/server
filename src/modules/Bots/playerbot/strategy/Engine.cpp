@@ -142,12 +142,17 @@ bool Engine::DoNextAction(Unit* unit, int depth)
             ActionNode* actionNode = queue.Pop();
             Action* action = InitializeAction(actionNode);
 
+			
+
             if (!action)
             {
                 LogAction("A:%s - UNKNOWN", actionNode->getName().c_str());
             }
             else if (action->isUseful())
             {
+
+				//sLog.outDetail("Do action: %s", actionNode->getName().c_str());
+
                 for (list<Multiplier*>::iterator i = multipliers.begin(); i!= multipliers.end(); i++)
                 {
                     Multiplier* multiplier = *i;

@@ -123,9 +123,9 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed)
 		ProcessBot(NULL, bot);
 		sLog.outDetail("Bot update : %s", bot->GetName());
 		flag_bot++;
+		flag_bot = (flag_bot + 1) % playerBots.size();
 	}
 	
-	flag_bot = (flag_bot + 1) % playerBots.size();
 	
 	
 	//已登录的直接遍历不好么
