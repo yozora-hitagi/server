@@ -94,10 +94,18 @@ void NextAction::destroy(NextAction** actions)
         return;
     }
 
-    for (int i=0; i<10 && actions[i]; i++)
+	//这里最大10， 不知道size 会不会超过10 。 上面 clone不是这么写的，改成一直的试试
+	//size 方法里面 也写了 10 个的限制
+	//int size = NextAction::size(actions);
+
+	//for (int i = 0; i < size && actions[i]; i++)
+	for (int i = 0; i < 10 && actions[i]; i++)
     {
         delete actions[i];
     }
+
+	//actions 本身没 delete
+	delete actions;
 }
 
 Value<Unit*>* Action::GetTargetValue()
