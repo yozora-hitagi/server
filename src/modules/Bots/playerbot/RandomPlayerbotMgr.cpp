@@ -441,11 +441,12 @@ void RandomPlayerbotMgr::RandomTeleport(Player* bot, uint32 mapId, float teleX, 
     Refresh(bot);
 }
 
+//
 void RandomPlayerbotMgr::Randomize(Player* bot)
 {
-    if (bot->getLevel() == 1)
-        RandomizeFirst(bot);
-    else
+    //if (bot->getLevel() == 1)
+    //    RandomizeFirst(bot);
+    //else
         IncreaseLevel(bot);
 }
 
@@ -477,8 +478,12 @@ void RandomPlayerbotMgr::IncreaseLevel(Player* bot)
 		RandomTeleportForLevel(bot);*/
 }
 
+
+//因为组队的机器人才会刷新， 而组队时会 根据玩家等级处理，  这个方法似乎多余了
 void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
 {
+
+
     uint32 maxLevel = sPlayerbotAIConfig.randomBotMaxLevel;
     if (maxLevel > sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         maxLevel = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);

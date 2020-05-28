@@ -19,13 +19,13 @@ class MANGOS_DLL_SPEC RandomPlayerbotFactory
         virtual ~RandomPlayerbotFactory() {}
 
     public:
-        bool CreateRandomBot(uint8 cls);
+        bool CreateRandomBot();
 
     private:
 		/**
 		数据库都改成动漫人物了。 这里加个职业区别
 		**/
-        bool CreateRandomBotName(uint8 cls,string &name,uint8 &gender);
+        bool CreateRandomBotName(string &name,uint8 &gender, uint8 &cls, uint8 &race);
 
     private:
         uint32 accountId;

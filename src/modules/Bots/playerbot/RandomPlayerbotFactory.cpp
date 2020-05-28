@@ -64,21 +64,27 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 	availableRaces[CLASS_DRUID].push_back(RACE_TAUREN);
 }
 
-bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls)
+bool RandomPlayerbotFactory::CreateRandomBot()
 {
-	sLog.outDetail("Creating new random bot for class %d", cls);
+
 
 	//uint8 gender = rand() % 2 ? GENDER_MALE : GENDER_FEMALE;
+	uint8 race;
+	uint8 cls;
 	uint8 gender;
 	string name;
-	if (!CreateRandomBotName(cls, name, gender)) {
+	if (!CreateRandomBotName(name, gender, cls, race)) {
 		return false;
 	}
 	
+	sLog.outDetail("Creating new random bot name=%s gender=%d class=%d race=%d", name, gender, cls, race);
+
 	if (name.empty())
 		return false;
 
-	uint8 race = availableRaces[cls][urand(0, availableRaces[cls].size() - 1)];
+	if (race < 1 || race >8) {
+		race = availableRaces[cls][urand(0, availableRaces[cls].size() - 1)];
+	}
 
 	uint8 skin = urand(0, 7);
 	uint8 face = urand(0, 7);
@@ -116,7 +122,7 @@ bool RandomPlayerbotFactory::CreateRandomBot(uint8 cls)
 	return true;
 }
 
-bool RandomPlayerbotFactory::CreateRandomBotName(uint8 cls, string &name, uint8 &gender)
+bool RandomPlayerbotFactory::CreateRandomBotName(string &name, uint8 &gender, uint8 &cls, uint8 &race)
 {
 	//QueryResult *result = CharacterDatabase.Query("SELECT MAX(name_id) FROM ai_playerbot_names");
 	//if (!result)
@@ -127,7 +133,7 @@ bool RandomPlayerbotFactory::CreateRandomBotName(uint8 cls, string &name, uint8 
 	//delete result;
 
 	//uint32 id = urand(0, maxId);
-	QueryResult *result = CharacterDatabase.PQuery("SELECT n.name,n.gender FROM ai_playerbot_names n LEFT OUTER JOIN characters e ON e.name = n.name WHERE e.guid IS NULL AND n.class = '%u' LIMIT 1", cls);
+	QueryResult *result = CharacterDatabase.PQuery("SELECT n.name,n.gender,n.class,n.race FROM ai_playerbot_names n LEFT OUTER JOIN characters e ON e.name = n.name WHERE e.guid IS NULL LIMIT 1");
 	if (!result)
 	{
 		sLog.outError("No more names left for random bots");
@@ -137,6 +143,8 @@ bool RandomPlayerbotFactory::CreateRandomBotName(uint8 cls, string &name, uint8 
 	Field *nfields = result->Fetch();
 	name = nfields[0].GetCppString();
 	gender = nfields[1].GetUInt8();
+	cls = nfields[2].GetUInt8();
+	race= nfields[3].GetUInt8();
 	delete result;
 
 	return true;

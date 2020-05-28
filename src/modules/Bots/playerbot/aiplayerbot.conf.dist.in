@@ -102,17 +102,16 @@ AiPlayerbot.CommandPrefix = ~
 #AiPlayerbot.RandomBotAutoCreate = 1
 
 # Random bot count
-#AiPlayerbot.MinRandomBots = 20
-#AiPlayerbot.MaxRandomBots = 45
+#AiPlayerbot.RandomBotsCount = 45
 #AiPlayerbot.RandomBotMinLevel = 1
 #AiPlayerbot.RandomBotMaxLevel = 255 (ignored if more than MaxPlayerLevel mangosd.conf value)
 
 # Accounts to create for random bots
 #AiPlayerbot.RandomBotAccountPrefix = rndbot
-#AiPlayerbot.RandomBotAccountCount = 5
 
-# Delete all random bot accounts
-#AiPlayerbot.DeleteRandomBotAccounts = 0
+
+# Delete all random bot accounts at start
+#AiPlayerbot.ResetRandomBotAccountsAtStart = 0
 
 # Maps to teleport random bots
 #AiPlayerbot.RandomBotMaps = 0,1,530,571

@@ -243,9 +243,9 @@ void PlayerbotAIConfig::SetValue(string name, string value)
 void PlayerbotAIConfig::CreateRandomBots()
 {
     string randomBotAccountPrefix = config.GetStringDefault("AiPlayerbot.RandomBotAccountPrefix", "rndbot");
-    int32 randomBotAccountCount = config.GetIntDefault("AiPlayerbot.RandomBotAccountCount", 5);
+    //int32 randomBotAccountCount = config.GetIntDefault("AiPlayerbot.RandomBotAccountCount", 5);
 
-    if (config.GetBoolDefault("AiPlayerbot.DeleteRandomBotAccounts", false))
+    if (config.GetBoolDefault("AiPlayerbot.ResetRandomBotAccountsAtStart", false))
     {
         sLog.outBasic("Deleting random bot accounts...");
         QueryResult *results = LoginDatabase.PQuery("SELECT id FROM account where username like '%s%%'", randomBotAccountPrefix.c_str());
@@ -260,9 +260,19 @@ void PlayerbotAIConfig::CreateRandomBots()
             delete results;
         }
 
-        CharacterDatabase.Execute("DELETE FROM ai_playerbot_random_bots");
+		CharacterDatabase.Execute("DELETE FROM ai_playerbot_random_bots");
+		//CharacterDatabase.Execute("UPDATE ai_playerbot_names SET in_use=0");
         sLog.outBasic("Random bot accounts deleted");
     }
+
+	QueryResult *results = CharacterDatabase.PQuery("SELECT COUNT(name) FROM  ai_playerbot_names;");
+	uint32 maxavailbotcount = 0;
+	if (results) {
+		maxavailbotcount = results->Fetch()[0].GetUInt32();
+		delete results;
+	}
+	uint32 randomBotAccountCount = (maxavailbotcount / 9) + 1;
+	sLog.outDetail("Random bot maxavailbotcount=%d randomBotAccountCount=%d", maxavailbotcount, randomBotAccountCount);
 
     for (int accountNumber = 0; accountNumber < randomBotAccountCount; ++accountNumber)
     {
@@ -306,22 +316,33 @@ void PlayerbotAIConfig::CreateRandomBots()
         randomBotAccounts.push_back(accountId);
 
         int count = sAccountMgr.GetCharactersCount(accountId);
+		int createmore = 9 - count;
 
 		//因为 角色最多10个 所以，为了也能登陆机器人账号
 		//有9个职业， 所以，这里检查 最导致第二次创建 生成18个，导致登陆获取角色列表失败。
         //if (count >= 10)
-		if (count > 1)
+		/*if (count > 1)
         {
             totalRandomBotChars += count;
             continue;
-        }
+        }*/
 
-        RandomPlayerbotFactory factory(accountId);
-        for (uint8 cls = CLASS_WARRIOR; cls < MAX_CLASSES; ++cls)
+		if (createmore > 0) {
+			RandomPlayerbotFactory factory(accountId);
+			for (int i = 0; i < createmore; i++) {
+				if (!factory.CreateRandomBot()) {
+					sLog.outError("Fail to create random bot for account %d", accountId);
+					break;
+				}
+			}
+		}
+
+        
+       /* for (uint8 cls = CLASS_WARRIOR; cls < MAX_CLASSES; ++cls)
         {
             if (cls != 10 && cls != 6)
                 factory.CreateRandomBot(cls);
-        }
+        }*/
 
         totalRandomBotChars += sAccountMgr.GetCharactersCount(accountId);
     }
