@@ -1598,6 +1598,9 @@ class Player : public Unit
         void learnQuestRewardedSpells(Quest const* quest);
         void learnSpellHighRank(uint32 spellid);
 
+		//添加方法获取天赋点使用情况
+		uint32 GetTalentPointCosts(uint32 tab) const;
+
         uint32 GetFreeTalentPoints() const
         {
             return GetUInt32Value(PLAYER_CHARACTER_POINTS1);
@@ -2575,6 +2578,8 @@ class Player : public Unit
         uint32 m_resetTalentsCost;
         time_t m_resetTalentsTime;
         uint32 m_usedTalentCount;
+		//添加一個变量记录天赋点分配情况
+		uint32 m_usedTalentCountPerTab[3];
 
         // Social
         PlayerSocial* m_social;

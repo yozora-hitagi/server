@@ -182,20 +182,6 @@ uint32 RandomPlayerbotMgr::AddRandomBot(bool alliance)
 
 bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 {
-	//这里的意思是 add时间到了， 就删掉add符号。 那在这之后就永远不更新和退出了？
-   // uint32 isValid = GetEventValue(bot, "add");
-   // if (!isValid)
-   // {
-   //     Player* player = GetPlayerBot(bot);
-   //     if (!player || !player->GetGroup())
-   //     {
-			//sLog.outDetail("Logging out bot %d %s", bot,player->GetName());
-			//LogoutPlayerBot(bot);
-   //         //sLog.outDetail("Bot %d expired", bot);
-   //         SetEventValue(bot, "add", 0, 0);
-   //     }
-   //     return true;
-   // }
 	Player* player;
 	if (bot) {
 		player = GetPlayerBot(bot);
@@ -203,12 +189,6 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 		{
 			sLog.outDetail("Bot %d logged in", bot);
 			AddPlayerBot(bot, 0);
-
-			//这里的online 看代码感觉并没有什么用。先干掉吧
-			/*if (!GetEventValue(bot, "online"))
-			{
-				SetEventValue(bot, "online", 1, sPlayerbotAIConfig.minRandomBotInWorldTime);
-			}*/
 			return true;
 		}
 	}
@@ -248,88 +228,17 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot,Player* _player)
 		return true;
 	}
 
-
-	/*uint32 randomize = GetEventValue(bot, "randomize");
-	if (!randomize)
-	{
-		sLog.outDetail("Randomizing bot %d", bot);
-		Randomize(player);
-		uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
-		ScheduleRandomize(bot, randomTime);
-		return true;
-	}*/
 	//update时间 改成了 范围的，这里改成每次 都随机一下。
 	Randomize(player);
-	
 
-    //if (player->GetGroup())
-    //{
-    //    sLog.outDetail("Skipping bot %d as it is in group", bot);
-    //    return false;
-    //}
 
     if (player->IsDead())
     {
-		//如果没组队的机器人都不刷新了。 那么死就死了。不用管了。
-		//if (!player->GetGroup()) {//如果机器人死了，那多半打不过怪，所以，换个地方。。是用这个方法，还是 forlevel 那个？
-		//	//事实上这个方法半天都刷在原地
-		//	//RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
-		//	RandomTeleportForLevel(player);
-		//	return true;
-		//}
-
-
-
 		//直接 信春哥
 		PlayerbotChatHandler ch(player);
 		ch.revive(*player);
 		player->GetPlayerbotAI()->ResetStrategies();
-
-		//这段代码没用
-		//string msg;
-		//WStrToUtf8(L"信春哥！原地复活！", msg);
-		//player->Yell(msg, 0);
-
-        /*if (!GetEventValue(bot, "dead"))
-        {
-            sLog.outDetail("Setting dead flag for bot %d", bot);
-            uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotReviveTime, sPlayerbotAIConfig.maxRandomBotReviveTime);
-            SetEventValue(bot, "dead", 1, randomTime);
-            SetEventValue(bot, "revive", 1, randomTime - 60);
-            return false;
-        }
-
-        if (!GetEventValue(bot, "revive"))
-        {
-            sLog.outDetail("Reviving dead bot %d", bot);
-            SetEventValue(bot, "dead", 0, 0);
-            SetEventValue(bot, "revive", 0, 0);
-            RandomTeleport(player, player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
-            return true;
-        }*/
-
-       // return false;
     }
-
-  
-   /* uint32 logout = GetEventValue(bot, "logout");
-    if (!logout)
-    {
-        sLog.outDetail("Logging out bot %d", bot);
-        LogoutPlayerBot(bot);
-        SetEventValue(bot, "logout", 1, sPlayerbotAIConfig.maxRandomBotInWorldTime);
-        return true;
-    }*/
-
-	//上面每次 都随机 里面已经包含 tele 了。 而且。 在考虑升级的时候tele 一下就行了。 没必要老是随机传送。
-   /* uint32 teleport = GetEventValue(bot, "teleport");
-    if (!teleport)
-    {
-        sLog.outDetail("Random teleporting bot %d", bot);
-        RandomTeleportForLevel(ai->GetBot());
-        SetEventValue(bot, "teleport", 1, sPlayerbotAIConfig.maxRandomBotInWorldTime);
-        return true;
-    }*/
 
     return false;
 }

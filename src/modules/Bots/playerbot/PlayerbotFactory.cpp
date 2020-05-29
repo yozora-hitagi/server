@@ -34,6 +34,29 @@ uint32 PlayerbotFactory::tradeSkills[] =
 //    Randomize(true);
 //}
 
+
+class DestroySupplyItemsVisitor : public IterateItemsVisitor
+{
+public:
+	DestroySupplyItemsVisitor(Player* bot) : IterateItemsVisitor(), bot(bot) {}
+
+	virtual bool Visit(Item* item)
+	{
+		uint32 id = item->GetProto()->ItemId;
+		ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(id);
+		//删掉 箭或者 子弹 
+		if (proto->Class == ITEM_CLASS_PROJECTILE && (proto->SubClass == ITEM_SUBCLASS_BULLET || proto->SubClass == ITEM_SUBCLASS_ARROW)) {
+			bot->DestroyItem(item->GetBagSlot(), item->GetSlot(), true);
+			return true;
+		}
+
+		return true;
+	}
+
+private:
+	Player* bot;
+};
+
 /**
 Refresh 存库， 如果在循环中，是不是太慢了。
 */
@@ -42,7 +65,9 @@ void PlayerbotFactory::Supply()
 	Prepare();
 	// InitEquipment(true);
 
-	ClearInventory();
+	DestroySupplyItemsVisitor visitor(bot);
+	IterateItems(&visitor);
+	//ClearInventory();
 
 	InitAmmo();
 	InitFood();
@@ -278,6 +303,9 @@ void PlayerbotFactory::InitTalents()
     if (bot->GetFreeTalentPoints())
         InitTalents(2 - specNo);
 }
+
+
+
 
 
 class DestroyItemsVisitor : public IterateItemsVisitor

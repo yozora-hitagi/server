@@ -6,10 +6,14 @@ using namespace ai;
 
 bool ChangeTalentsAction::Execute(Event event)
 {
+	
+	string arg = event.getParam();
 	if (ai->GetMaster()) {
 		string msg;
-		WStrToUtf8(L"这个命令没实现哦~",msg);
-		ai->TellMaster(msg);
+		WStrToUtf8(L"我的天赋是：",msg);
+		ostringstream out;
+		out << msg << " ( " << bot->GetTalentPointCosts(0) << " / " << bot->GetTalentPointCosts(1) << " / " << bot->GetTalentPointCosts(2) << " ) ";
+		ai->TellMaster(out.str());
 	}
     return false;
 }

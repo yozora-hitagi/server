@@ -443,6 +443,9 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
     m_comboPoints = 0;
 
     m_usedTalentCount = 0;
+	m_usedTalentCountPerTab[0] = 0;
+	m_usedTalentCountPerTab[1] = 0;
+	m_usedTalentCountPerTab[2] = 0;
 
     m_modManaRegen = 0;
     m_modManaRegenInterrupt = 0;
@@ -3396,9 +3399,15 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
 
     if (talentPos)
     {
+		uint32 talentCosts = GetTalentSpellCost(talentPos);
         // update used talent points count
-        m_usedTalentCount += GetTalentSpellCost(talentPos);
+		m_usedTalentCount += talentCosts;
         UpdateFreeTalentPoints(false);
+
+		//添加代码统计各系天赋点数 
+		TalentEntry const *talentInfo = sTalentStore.LookupEntry(talentPos->talent_id);
+		TalentTabEntry const *talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+		m_usedTalentCountPerTab[talentTabInfo->tabpage] += talentCosts;
     }
 
     // update free primary prof.points (if any, can be none in case GM .learn prof. learning)
@@ -3641,10 +3650,19 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
         if (talentCosts < m_usedTalentCount)
         {
             m_usedTalentCount -= talentCosts;
+
+			//添加代码统计各系天赋点数 
+			TalentEntry const *talentInfo = sTalentStore.LookupEntry(talentPos->talent_id);
+			TalentTabEntry const *talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+			m_usedTalentCountPerTab[talentTabInfo->tabpage] -= talentCosts;
         }
         else
         {
             m_usedTalentCount = 0;
+
+			m_usedTalentCountPerTab[0] = 0;
+			m_usedTalentCountPerTab[1] = 1;
+			m_usedTalentCountPerTab[2] = 2;
         }
 
         UpdateFreeTalentPoints(false);
@@ -22342,6 +22360,11 @@ void Player::learnSpellHighRank(uint32 spellid)
 
     DoPlayerLearnSpell worker(*this);
     sSpellMgr.doForHighRanks(spellid, worker);
+}
+
+uint32 Player::GetTalentPointCosts(uint32 tab) const
+{
+	return m_usedTalentCountPerTab[tab];
 }
 
 void Player::_LoadSkills(QueryResult* result)
