@@ -521,7 +521,7 @@ bool RandomPlayerbotMgr::IsRandomBot(Player* bot)
 
 bool RandomPlayerbotMgr::IsRandomBot(uint32 bot)
 {
-    return GetEventValue(bot, "add");
+    return sPlayerbotAIConfig.GetEventValue(bot, "add");
 }
 
 /**
@@ -604,41 +604,7 @@ vector<uint32> RandomPlayerbotMgr::GetFreeBots(bool alliance)
     return guids;
 }
 
-uint32 RandomPlayerbotMgr::GetEventValue(uint32 bot, string event)
-{
-    uint32 value = 0;
 
-    QueryResult* results = CharacterDatabase.PQuery(
-            "select `value`, `time`, validIn from ai_playerbot_random_bots where owner = 0 and bot = '%u' and event = '%s'",
-            bot, event.c_str());
-
-    if (results)
-    {
-        Field* fields = results->Fetch();
-        value = fields[0].GetUInt32();
-        uint32 lastChangeTime = fields[1].GetUInt32();
-        uint32 validIn = fields[2].GetUInt32();
-        if ((time(0) - lastChangeTime) >= validIn)
-            value = 0;
-        delete results;
-    }
-
-    return value;
-}
-
-uint32 RandomPlayerbotMgr::SetEventValue(uint32 bot, string event, uint32 value, uint32 validIn)
-{
-    CharacterDatabase.PExecute("delete from ai_playerbot_random_bots where owner = 0 and bot = '%u' and event = '%s'",
-            bot, event.c_str());
-    if (value)
-    {
-        CharacterDatabase.PExecute(
-                "insert into ai_playerbot_random_bots (owner, bot, `time`, validIn, event, `value`) values ('%u', '%u', '%u', '%u', '%s', '%u')",
-                0, bot, (uint32)time(0), validIn, event.c_str(), value);
-    }
-
-    return value;
-}
 
 bool ChatHandler::HandlePlayerbotConsoleCommand(char* args)
 {
@@ -651,69 +617,70 @@ bool ChatHandler::HandlePlayerbotConsoleCommand(char* args)
 
     if (!args || !*args)
     {
-        sLog.outError("Usage: rndbot stats/update/reset/init/refresh/add/remove");
+        sLog.outError("Usage: rndbot stats (or with .bot cmd args)");
         return false;
     }
 
     string cmd = args;
 
-    if (cmd == "reset")
-    {
-        CharacterDatabase.PExecute("delete from ai_playerbot_random_bots");
-        sLog.outBasic("Random bots were reset for all players");
-        return true;
-    }
-    else if (cmd == "stats")
+    //if (cmd == "reset")
+    //{
+    //    CharacterDatabase.PExecute("delete from ai_playerbot_random_bots");
+    //    sLog.outBasic("Random bots were reset for all players");
+    //    return true;
+    //}
+    //else 
+	if (cmd == "stats")
     {
         sRandomPlayerbotMgr.PrintStats();
         return true;
     }
-    else if (cmd == "update")
-    {
-        sRandomPlayerbotMgr.UpdateAIInternal(0);
-        return true;
-    }
-    else if (cmd == "init" || cmd == "refresh")
-    {
-        sLog.outString("Randomizing bots for %d accounts", sPlayerbotAIConfig.randomBotAccounts.size());
-        BarGoLink bar(sPlayerbotAIConfig.randomBotAccounts.size());
-        for (list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); ++i)
-        {
-            uint32 account = *i;
-            bar.step();
-            if (QueryResult *results = CharacterDatabase.PQuery("SELECT guid FROM characters where account = '%u'", account))
-            {
-                do
-                {
-                    Field* fields = results->Fetch();
-                    ObjectGuid guid = ObjectGuid(fields[0].GetUInt64());
-                    Player* bot = sObjectMgr.GetPlayer(guid, true);
-                    if (!bot)
-                        continue;
+    //else if (cmd == "update")
+	//{
+    //    sRandomPlayerbotMgr.UpdateAIInternal(0);
+    //    return true;
+    //}
+    //else if (cmd == "init" || cmd == "refresh")
+    //{
+    //    sLog.outString("Randomizing bots for %d accounts", sPlayerbotAIConfig.randomBotAccounts.size());
+    //    BarGoLink bar(sPlayerbotAIConfig.randomBotAccounts.size());
+    //    for (list<uint32>::iterator i = sPlayerbotAIConfig.randomBotAccounts.begin(); i != sPlayerbotAIConfig.randomBotAccounts.end(); ++i)
+    //    {
+    //        uint32 account = *i;
+    //        bar.step();
+    //        if (QueryResult *results = CharacterDatabase.PQuery("SELECT guid FROM characters where account = '%u'", account))
+    //        {
+    //            do
+    //            {
+    //                Field* fields = results->Fetch();
+    //                ObjectGuid guid = ObjectGuid(fields[0].GetUInt64());
+    //                Player* bot = sObjectMgr.GetPlayer(guid, true);
+    //                if (!bot)
+    //                    continue;
 
-                    if (cmd == "init")
-                    {
-                        sLog.outDetail("Randomizing bot %s for account %u", bot->GetName(), account);
-                        sRandomPlayerbotMgr.RandomizeFirst(bot);
-                    }
-                    else
-                    {
-                        sLog.outDetail("Refreshing bot %s for account %u", bot->GetName(), account);
-                        //bot->SetLevel(bot->getLevel() - 1);
-                        sRandomPlayerbotMgr.IncreaseLevel(bot);
-                    }
-                   /* uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
-                    CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'randomize' and bot = '%u'",
-                            randomTime, bot->GetGUIDLow());
-                    CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'logout' and bot = '%u'",
-                            sPlayerbotAIConfig.maxRandomBotInWorldTime, bot->GetGUIDLow());*/
-                } while (results->NextRow());
+    //                if (cmd == "init")
+    //                {
+    //                    sLog.outDetail("Randomizing bot %s for account %u", bot->GetName(), account);
+    //                    sRandomPlayerbotMgr.RandomizeFirst(bot);
+    //                }
+    //                else
+    //                {
+    //                    sLog.outDetail("Refreshing bot %s for account %u", bot->GetName(), account);
+    //                    //bot->SetLevel(bot->getLevel() - 1);
+    //                    sRandomPlayerbotMgr.IncreaseLevel(bot);
+    //                }
+    //               /* uint32 randomTime = urand(sPlayerbotAIConfig.minRandomBotRandomizeTime, sPlayerbotAIConfig.maxRandomBotRandomizeTime);
+    //                CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'randomize' and bot = '%u'",
+    //                        randomTime, bot->GetGUIDLow());
+    //                CharacterDatabase.PExecute("update ai_playerbot_random_bots set validIn = '%u' where event = 'logout' and bot = '%u'",
+    //                        sPlayerbotAIConfig.maxRandomBotInWorldTime, bot->GetGUIDLow());*/
+    //            } while (results->NextRow());
 
-                delete results;
-            }
-        }
-        return true;
-    }
+    //            delete results;
+    //        }
+    //    }
+    //    return true;
+    //}
     else
     {
         list<string> messages = sRandomPlayerbotMgr.HandlePlayerbotCommand(args, NULL);
@@ -909,12 +876,12 @@ void RandomPlayerbotMgr::PrintStats()
 double RandomPlayerbotMgr::GetBuyMultiplier(Player* bot)
 {
     uint32 id = bot->GetObjectGuid();
-    uint32 value = GetEventValue(id, "buymultiplier");
+    uint32 value = sPlayerbotAIConfig.GetEventValue(id, "buymultiplier");
     if (!value)
     {
         value = urand(1, 120);
         uint32 validIn = urand(sPlayerbotAIConfig.minRandomBotsPriceChangeInterval, sPlayerbotAIConfig.maxRandomBotsPriceChangeInterval);
-        SetEventValue(id, "buymultiplier", value, validIn);
+		sPlayerbotAIConfig.SetEventValue(id, "buymultiplier", value, validIn);
     }
 
     return (double)value / 100.0;
@@ -923,12 +890,12 @@ double RandomPlayerbotMgr::GetBuyMultiplier(Player* bot)
 double RandomPlayerbotMgr::GetSellMultiplier(Player* bot)
 {
     uint32 id = bot->GetObjectGuid();
-    uint32 value = GetEventValue(id, "sellmultiplier");
+    uint32 value = sPlayerbotAIConfig.GetEventValue(id, "sellmultiplier");
     if (!value)
     {
         value = urand(80, 250);
         uint32 validIn = urand(sPlayerbotAIConfig.minRandomBotsPriceChangeInterval, sPlayerbotAIConfig.maxRandomBotsPriceChangeInterval);
-        SetEventValue(id, "sellmultiplier", value, validIn);
+		sPlayerbotAIConfig.SetEventValue(id, "sellmultiplier", value, validIn);
     }
 
     return (double)value / 100.0;
@@ -937,13 +904,13 @@ double RandomPlayerbotMgr::GetSellMultiplier(Player* bot)
 uint32 RandomPlayerbotMgr::GetLootAmount(Player* bot)
 {
     uint32 id = bot->GetObjectGuid();
-    return GetEventValue(id, "lootamount");
+    return sPlayerbotAIConfig.GetEventValue(id, "lootamount");
 }
 
 void RandomPlayerbotMgr::SetLootAmount(Player* bot, uint32 value)
 {
     uint32 id = bot->GetObjectGuid();
-    SetEventValue(id, "lootamount", value, 24 * 3600);
+	sPlayerbotAIConfig.SetEventValue(id, "lootamount", value, 24 * 3600);
 }
 
 uint32 RandomPlayerbotMgr::GetTradeDiscount(Player* bot)

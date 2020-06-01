@@ -11,7 +11,10 @@
 #include "RandomPlayerbotFactory.h"
 #include "SystemConfig.h"
 
+
+
 map<uint8, vector<uint8> > RandomPlayerbotFactory::availableRaces;
+
 
 RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(accountId)
 {
@@ -62,6 +65,8 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 
 	availableRaces[CLASS_DRUID].push_back(RACE_NIGHTELF);
 	availableRaces[CLASS_DRUID].push_back(RACE_TAUREN);
+
+	
 }
 
 bool RandomPlayerbotFactory::CreateRandomBot()

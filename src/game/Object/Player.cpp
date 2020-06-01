@@ -3663,8 +3663,8 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
             m_usedTalentCount = 0;
 
 			m_usedTalentCountPerTab[0] = 0;
-			m_usedTalentCountPerTab[1] = 1;
-			m_usedTalentCountPerTab[2] = 2;
+			m_usedTalentCountPerTab[1] = 0;
+			m_usedTalentCountPerTab[2] = 0;
         }
 
         UpdateFreeTalentPoints(false);

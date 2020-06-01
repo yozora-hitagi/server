@@ -7,10 +7,25 @@
 
 using namespace std;
 
+map<uint8, talent_des >  PlayerbotAIConfig::talentsDes;
+
 INSTANTIATE_SINGLETON_1(PlayerbotAIConfig);
+
+
 
 PlayerbotAIConfig::PlayerbotAIConfig()
 {
+
+	talentsDes[CLASS_WARRIOR] = { L"武器", L"狂怒", L"防御" };
+	talentsDes[CLASS_PALADIN] = { L"神圣", L"防护", L"惩戒" };
+	talentsDes[CLASS_HUNTER] = { L"野兽掌握", L"射击", L"生存" };
+	talentsDes[CLASS_ROGUE] = { L"刺杀", L"战斗", L"敏锐" };
+	talentsDes[CLASS_PRIEST] = { L"戒律", L"神圣", L"暗影" };
+	talentsDes[CLASS_SHAMAN] = { L"元素", L"增强", L"恢复" };
+	talentsDes[CLASS_MAGE] = { L"奥术", L"火焰", L"冰霜" };
+	talentsDes[CLASS_WARLOCK] = { L"痛苦", L"恶魔学识", L"毁灭" };
+	talentsDes[CLASS_DRUID] = { L"平衡", L"野性战斗", L"恢复" };
+
 }
 
 template <class T>
@@ -237,6 +252,45 @@ void PlayerbotAIConfig::SetValue(string name, string value)
 
     else if (name == "IterationsPerTick")
         out >> iterationsPerTick;
+}
+
+
+//默认值改为 0xFFFFFFFF
+uint32 PlayerbotAIConfig::GetEventValue(uint32 bot, string event)
+{
+	uint32 value = 0xFFFFFFFF;
+
+	QueryResult* results = CharacterDatabase.PQuery(
+		"select `value`, `time`, validIn from ai_playerbot_random_bots where owner = 0 and bot = '%u' and event = '%s'",
+		bot, event.c_str());
+
+	if (results)
+	{
+		Field* fields = results->Fetch();
+		value = fields[0].GetUInt32();
+		uint32 lastChangeTime = fields[1].GetUInt32();
+		uint32 validIn = fields[2].GetUInt32();
+		if ((time(0) - lastChangeTime) >= validIn)
+			value = 0xFFFFFFFF;
+		delete results;
+	}
+
+	return value;
+}
+
+//validIn 看代码 是有效期的意思 
+uint32 PlayerbotAIConfig::SetEventValue(uint32 bot, string event, uint32 value, uint32 validIn)
+{
+	CharacterDatabase.PExecute("delete from ai_playerbot_random_bots where owner = 0 and bot = '%u' and event = '%s'",
+		bot, event.c_str());
+	/*if (value)
+	{*/
+		CharacterDatabase.PExecute(
+			"insert into ai_playerbot_random_bots (owner, bot, `time`, validIn, event, `value`) values ('%u', '%u', '%u', '%u', '%s', '%u')",
+			0, bot, (uint32)time(0), validIn, event.c_str(), value);
+	//}
+
+	return value;
 }
 
 

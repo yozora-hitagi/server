@@ -6,6 +6,15 @@ class Player;
 class PlayerbotMgr;
 class ChatHandler;
 
+
+
+struct talent_des {
+	std::wstring tab0;
+	std::wstring tab1;
+	std::wstring tab2;
+};
+
+
 class PlayerbotAIConfig
 {
 public:
@@ -63,6 +72,11 @@ public:
 
     std::string GetValue(std::string name);
     void SetValue(std::string name, std::string value);
+
+	uint32 GetEventValue(uint32 bot, std::string event);
+	uint32 SetEventValue(uint32 bot, std::string event, uint32 value, uint32 validIn);
+
+	static std::map<uint8, talent_des > talentsDes;
 
 private:
     void CreateRandomBots();

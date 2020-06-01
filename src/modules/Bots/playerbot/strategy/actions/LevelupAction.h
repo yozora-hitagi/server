@@ -29,7 +29,7 @@ namespace ai
 			learnSpell();
 
 			PlayerbotFactory factory(bot, level);
-			factory.CleanRandomize();
+			factory.RandomizeForLevelup();
 
 			if (!bot->GetGroup()) {
 				sRandomPlayerbotMgr.RandomTeleportForLevel(bot);

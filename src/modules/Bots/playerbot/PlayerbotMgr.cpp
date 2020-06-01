@@ -138,7 +138,7 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
         return false;
     }
 
-    if (cmd == "add" || cmd == "login")
+    if (cmd == "login")
     {
         if (sObjectMgr.GetPlayer(guid))
         {
@@ -148,7 +148,7 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
         AddPlayerBot(guid.GetRawValue(), masterAccountId);
         return true;
     }
-    else if (cmd == "remove" || cmd == "logout" || cmd == "rm")
+    else if (cmd == "logout")
     {
         if (!GetPlayerBot(guid.GetRawValue()))
         {
@@ -188,7 +188,7 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
                 factory.CleanRandomize();
                 return true;
             }
-            else if (cmd == "init=epic" || cmd == "init=purple")
+            else if (cmd == "init=purple" || cmd == "init=epic")
             {
                 PlayerbotFactory factory(bot, master->getLevel(), ITEM_QUALITY_EPIC);
                 factory.CleanRandomize();
@@ -196,7 +196,7 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
             }
         }
 
-        if (cmd == "update")
+        /*if (cmd == "update")
         {
             PlayerbotFactory factory(bot, bot->getLevel());
             factory.Refresh();
@@ -206,7 +206,7 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
         {
             sRandomPlayerbotMgr.Randomize(bot);
             return true;
-        }
+        }*/
     }
 
     return false;
@@ -255,9 +255,12 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char* args, Player* master)
 {
     list<string> messages;
 
+	string usage = "usage: login/logout/init=white,green,blue,purple PLAYERNAME";
+
+
     if (!*args)
     {
-        messages.push_back("usage: add/init/remove PLAYERNAME");
+        messages.push_back(usage);
         return messages;
     }
 
@@ -265,7 +268,7 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char* args, Player* master)
     char *charname = strtok (NULL, " ");
     if (!cmd || !charname)
     {
-        messages.push_back("usage: add/init/remove PLAYERNAME");
+        messages.push_back(usage);
         return messages;
     }
 

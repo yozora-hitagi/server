@@ -12,6 +12,7 @@ class Item;
 
 using namespace std;
 
+
 class MANGOS_DLL_SPEC RandomPlayerbotFactory
 {
     public:
@@ -29,7 +30,8 @@ class MANGOS_DLL_SPEC RandomPlayerbotFactory
 
     private:
         uint32 accountId;
-        static map<uint8, vector<uint8> > availableRaces;
+		static map<uint8, vector<uint8> > availableRaces;
+
 };
 
 #endif

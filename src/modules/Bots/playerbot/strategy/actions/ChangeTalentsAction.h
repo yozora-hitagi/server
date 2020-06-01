@@ -11,6 +11,10 @@ namespace ai
     public:
         virtual bool Execute(Event event);
 
+	private:
+		void report();
+		void setspec(uint8 specNo);
+
     };
 
 }

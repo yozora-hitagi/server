@@ -50,6 +50,31 @@ public:
 			return true;
 		}
 
+		//食物或者饮料
+		if (proto->Class == ITEM_CLASS_CONSUMABLE && (proto->Spells[0].SpellCategory == 11 || proto->Spells[0].SpellCategory == 59)) {
+			bot->DestroyItem(item->GetBagSlot(), item->GetSlot(), true);
+			return true;
+		}
+
+		//药品
+		if (proto->Class == ITEM_CLASS_CONSUMABLE && proto->Spells[0].SpellCategory == 4) {
+			for (int j = 0; j < MAX_ITEM_PROTO_SPELLS; j++)
+			{
+				const SpellEntry* const spellInfo = sSpellStore.LookupEntry(proto->Spells[j].SpellId);
+				if (!spellInfo)
+					continue;
+
+				for (int i = 0; i < 3; i++)
+				{
+					if (spellInfo->Effect[i] == SPELL_EFFECT_HEAL || spellInfo->Effect[i] == SPELL_EFFECT_ENERGIZE)
+					{
+						bot->DestroyItem(item->GetBagSlot(), item->GetSlot(), true);
+						break;
+					}
+				}
+			}
+		}
+
 		return true;
 	}
 
@@ -63,19 +88,13 @@ Refresh 存库， 如果在循环中，是不是太慢了。
 void PlayerbotFactory::Supply()
 {
 	Prepare();
-	// InitEquipment(true);
 
 	DestroySupplyItemsVisitor visitor(bot);
 	IterateItems(&visitor);
-	//ClearInventory();
 
 	InitAmmo();
 	InitFood();
 	InitPotions();
-
-	/*  uint32 money = urand(level * 1000, level * 5 * 1000);
-	if (bot->GetMoney() < money)
-	bot->SetMoney(money);*/
 }
 
 void PlayerbotFactory::Refresh()
@@ -127,6 +146,39 @@ void PlayerbotFactory::Prepare()
 	//估摸着这两句是隐藏头盔和披风吧
     bot->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM);
     bot->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK);
+}
+
+void PlayerbotFactory::RandomizeForLevelup()
+{
+	Prepare();
+
+	InitQuests();
+
+	// bot->SetUInt32Value(PLAYER_XP, 0);
+	CancelAuras();
+
+	InitSkills();
+	InitTradeSkills();
+	InitTalents();
+	//InitAvailableSpells();
+	InitSpecialSpells();
+	InitMounts();
+	UpdateTradeSkills();
+	//  bot->SaveToDB();
+
+	InitEquipment(false);
+	InitBags();
+	InitAmmo();
+	InitFood();
+	InitPotions();
+	InitSecondEquipmentSet();
+	InitInventory();
+
+	//bot->SetMoney(urand(level * 1000, level * 5 * 1000));
+ //   bot->SaveToDB();
+
+	InitPet();
+	bot->SaveToDB();
 }
 
 void PlayerbotFactory::Randomize(bool incremental)
@@ -292,12 +344,27 @@ void PlayerbotFactory::InitSpells()
 
 void PlayerbotFactory::InitTalents()
 {
-    uint32 point = urand(0, 100);
-    uint8 cls = bot->getClass();
-    uint32 p1 = sPlayerbotAIConfig.specProbability[cls][0];
-    uint32 p2 = p1 + sPlayerbotAIConfig.specProbability[cls][1];
+	uint32 specNo = sPlayerbotAIConfig.GetEventValue(bot->GetObjectGuid(), "talent");
 
-    uint32 specNo = (point < p1 ? 0 : (point < p2 ? 1 : 2));
+	switch (specNo)
+	{
+	case 0:
+	case 1:
+	case 2:
+		specNo = 2;
+		break;
+
+	default:
+		uint32 point = urand(0, 100);
+		uint8 cls = bot->getClass();
+		uint32 p1 = sPlayerbotAIConfig.specProbability[cls][0];
+		uint32 p2 = p1 + sPlayerbotAIConfig.specProbability[cls][1];
+
+		specNo = (point < p1 ? 0 : (point < p2 ? 1 : 2));
+		break;
+	}
+
+
     InitTalents(specNo);
 
     if (bot->GetFreeTalentPoints())
@@ -1359,9 +1426,10 @@ void PlayerbotFactory::InitPotions()
         ItemPrototype const* proto = sObjectMgr.GetItemPrototype(itemId);
         if (!proto)
             continue;
-
+		
+		//数据库中  药剂 并不是 1
+		//proto->SubClass != ITEM_SUBCLASS_POTION ||
         if (proto->Class != ITEM_CLASS_CONSUMABLE ||
-            proto->SubClass != ITEM_SUBCLASS_POTION ||
             proto->Spells[0].SpellCategory != 4 ||
             proto->Bonding != NO_BIND)
             continue;
@@ -1418,8 +1486,9 @@ void PlayerbotFactory::InitFood()
         if (!proto)
             continue;
 
+		//不知道 是不是 数据库数据有问题 ， 食物和 饮料分类 不是5
+		// proto->SubClass != ITEM_SUBCLASS_FOOD ||
         if (proto->Class != ITEM_CLASS_CONSUMABLE ||
-            proto->SubClass != ITEM_SUBCLASS_FOOD ||
             (proto->Spells[0].SpellCategory != 11 && proto->Spells[0].SpellCategory != 59) ||
             proto->Bonding != NO_BIND)
             continue;
