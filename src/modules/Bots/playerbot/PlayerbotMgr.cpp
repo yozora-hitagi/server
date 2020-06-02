@@ -157,7 +157,13 @@ bool PlayerbotHolder::ProcessBotCommand(string cmd, ObjectGuid guid, bool admin,
 
         LogoutPlayerBot(guid.GetRawValue());
         return true;
-    }
+	}
+	else if (cmd == "supply") {
+		Player* bot = GetPlayerBot(guid.GetRawValue());
+		PlayerbotFactory factory(bot, bot->getLevel());
+		factory.Supply();
+		return true;
+	}
 
     if (admin)
     {
@@ -255,7 +261,7 @@ list<string> PlayerbotHolder::HandlePlayerbotCommand(char* args, Player* master)
 {
     list<string> messages;
 
-	string usage = "usage: login/logout/init=white,green,blue,purple PLAYERNAME";
+	string usage = "usage: login/logout/supply/init=white,green,blue,purple PLAYERNAME";
 
 
     if (!*args)

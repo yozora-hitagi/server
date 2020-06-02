@@ -1434,7 +1434,7 @@ void PlayerbotFactory::InitPotions()
             proto->Bonding != NO_BIND)
             continue;
 
-        if (proto->RequiredLevel > bot->getLevel() || proto->RequiredLevel < bot->getLevel() - 10)
+        if (proto->RequiredLevel > bot->getLevel() || (int)proto->RequiredLevel < (int)bot->getLevel() - 10)
             continue;
 
         if (proto->RequiredSkill && !bot->HasSkill(proto->RequiredSkill))
@@ -1493,7 +1493,7 @@ void PlayerbotFactory::InitFood()
             proto->Bonding != NO_BIND)
             continue;
 
-        if (proto->RequiredLevel > bot->getLevel() || proto->RequiredLevel < bot->getLevel() - 10)
+        if (proto->RequiredLevel > bot->getLevel() || (int)proto->RequiredLevel < (int)bot->getLevel() - 10)
             continue;
 
         if (proto->RequiredSkill && !bot->HasSkill(proto->RequiredSkill))
