@@ -7,6 +7,10 @@ using namespace ai;
 
 bool ListQuestsAction::Execute(Event event)
 {
+	if (ai->GetMaster()) {
+		ai->TellMaster("usage: ~quests [completed|incompleted|all]");
+	}
+
     if (event.getParam() == "completed")
     {
         ListQuests(QUEST_LIST_FILTER_COMPLETED);

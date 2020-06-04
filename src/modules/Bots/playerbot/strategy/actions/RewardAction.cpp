@@ -8,6 +8,11 @@ using namespace ai;
 
 bool RewardAction::Execute(Event event)
 {
+
+	if (ai->GetMaster()) {
+		ai->TellMaster("usage: ~reward itemlink");
+	}
+
 	//~reward |Hitem:6171: 
 	// trigger
 
